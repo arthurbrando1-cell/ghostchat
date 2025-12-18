@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GhostChat | Entre como um fantasma</title>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0b141a;
+            --bg-sidebar: #111b21;
+            --bg-chat: #0b141a;
+            --header-bg: #202c33;
+            --text-primary: #e9edef;
+            --text-secondary: #8696a0;
+            --accent: #00a884;
+            --msg-own: #005c4b;
+            --msg-other: #202c33;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Container Principal */
+        #app {
+            width: 100%;
+            max-width: 1600px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-chat);
+        }
+
+        /* Tela de Login */
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .ghost-logo {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .btn-login {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-login:hover { transform: scale(1.05); }
+
+        /* Header */
+        header {
+            background: var(--header-bg);
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-info h2 { font-size: 16px; }
+        .user-info p { font-size: 12px; color: var(--accent); }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Área de Chat */
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 5%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-blend-mode: overlay;
+        }
+
+        /* Bolhas de Mensagem */
+        .message {
+            max-width: 65%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            position: relative;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message.own {
+            align-self: flex-end;
+            background: var(--msg-own);
+            border-top-right-radius: 0;
+        }
+
+        .message.other {
+            align-self: flex-start;
+            background: var(--msg-other);
+            border-top-left-radius: 0;
+        }
+
+        .msg-meta {
+            display: block;
+            font-size: 10px;
+            margin-top: 4px;
+            color: var(--text-secondary);
+            text-align: right;
+        }
+
+        .nickname {
+            display: block;
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 2px;
+            color: #d1d1d1;
+        }
+
+        /* Input de Mensagem */
+        .input-area {
+            background: var(--header-bg);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: #2a3942;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: white;
+            outline: none;
+        }
+
+        .send-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 24px;
+        }
+
+        /* Esconder elementos */
+        .hidden { display: none !important; }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            .message { max-width: 85%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="ghost-logo">👻</div>
+        <h1>GhostChat</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">Entre como um fantasma.</p>
+        <button class="btn-login" id="login-btn">Entrar Anonimamente</button>
+    </div>
+
+    <div id="app" class="hidden">
+        <header>
+            <div class="user-info">
+                <h2 id="display-name">Carregando...</h2>
+                <p>● Online</p>
+            </div>
+            <button class="logout-btn" id="logout-btn">Sair</button>
+        </header>
+
+        <div id="chat-container">
+            </div>
+
+        <form class="input-area" id="message-form">
+            <input type="text" id="message-input" placeholder="Mensagem" autocomplete="off">
+            <button type="submit" class="send-btn">➔</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+        // Configuração fornecida
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0DhQ-EUs3Azqn7_tbB-W3S9ko0DaUWls",
+            authDomain: "ghostchat-app-3a3f0.firebaseapp.com",
+            projectId: "ghostchat-app-3a3f0",
+            storageBucket: "ghostchat-app-3a3f0.firebasestorage.app",
+            messagingSenderId: "781582052854",
+            appId: "1:781582052854:web:7fba6eae2a372ce0e22bd7"
+        };
+
+        // Inicialização
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const loginScreen = document.getElementById('login-screen');
+        const mainApp = document.getElementById('app');
+        const chatContainer = document.getElementById('chat-container');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const displayNameElem = document.getElementById('display-name');
+
+        let currentUser = null;
+
+        // --- FUNÇÕES DE LÓGICA ---
+
+        // Gerar Nome Aleatório
+        const generateGhostName = () => `Ghost#${Math.floor(1000 + Math.random() * 9000)}`;
+
+        // Login
+        document.getElementById('login-btn').onclick = () => {
+            signInAnonymously(auth).catch(err => alert("Erro ao entrar: " + err.message));
+        };
+
+        // Logout
+        document.getElementById('logout-btn').onclick = () => {
+            signOut(auth).then(() => location.reload());
+        };
+
+        // Monitorar Estado da Autenticação
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                let nickname = localStorage.getItem('ghost_nick') || generateGhostName();
+                localStorage.setItem('ghost_nick', nickname);
+                
+                // Salvar/Atualizar no Firestore
+                await setDoc(doc(db, "users", user.uid), {
+                    nickname: nickname,
+                    online: true,
+                    createdAt: serverTimestamp()
+                }, { merge: true });
+
+                displayNameElem.innerText = nickname;
+                loginScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                loadMessages();
+            } else {
+                loginScreen.classList.remove('hidden');
+                mainApp.classList.add('hidden');
+            }
+        });
+
+        // Enviar Mensagem
+        messageForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const text = messageInput.value.trim();
+            
+            if (text && currentUser) {
+                messageInput.value = '';
+                try {
+                    await addDoc(collection(db, "messages"), {
+                        uid: currentUser.uid,
+                        nickname: localStorage.getItem('ghost_nick'),
+                        text: text,
+                        timestamp: serverTimestamp()
+                    });
+                } catch (e) {
+                    console.error("Erro ao enviar: ", e);
+                }
+            }
+        };
+
+        // Carregar Mensagens em Tempo Real
+        function loadMessages() {
+            const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
+            
+            onSnapshot(q, (snapshot) => {
+                chatContainer.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    renderMessage(data);
+                });
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
+        }
+
+        // Renderizar Mensagem na Tela
+        function renderMessage(data) {
+            const isOwn = data.uid === currentUser.uid;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isOwn ? 'own' : 'other'}`;
+            
+            const time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...';
+
+            msgDiv.innerHTML = `
+                ${!isOwn ? `<span class="nickname">${data.nickname}</span>` : ''}
+                <div class="text">${data.text}</div>
+                <span class="msg-meta">${time}</span>
+            `;
+            
+            chatContainer.appendChild(msgDiv);
+        }
+    </script>
+</body>
+</html>
