@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GhostChat Pro - Ultimate UI</title>
     <style>
@@ -22,7 +21,7 @@
         .sidebar-header { background: var(--bg-panel); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; height: 60px; }
         .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1.5px solid var(--accent); }
         
-        /* BARRA DE STATUS (NOVO) */
+        /* Barra de Status */
         .status-bar { padding: 10px 16px; display: flex; gap: 12px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.1); background: #111b21; scrollbar-width: none; }
         .status-thumb { min-width: 58px; height: 58px; border-radius: 50%; border: 2px solid var(--accent); padding: 2px; cursor: pointer; position: relative; flex-shrink: 0; }
         .status-thumb img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
@@ -33,11 +32,9 @@
         .chat-item:hover { background: #2a3942; }
         .chat-item img { width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; }
 
-        /* Chat Principal */
+        /* Main Chat */
         .main-chat { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); background-size: cover; background-position: center; position: relative; }
         .chat-header { background: var(--bg-panel); padding: 10px 16px; display: flex; align-items: center; height: 60px; z-index: 10; justify-content: space-between; }
-        .header-user { display: flex; align-items: center; }
-        
         #messages-container { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 8px; z-index: 5; }
         
         /* Mensagens */
@@ -47,15 +44,15 @@
         .own .msg-bubble { background: var(--msg-own); border-bottom-right-radius: 2px; }
         .other .msg-bubble { background: var(--msg-other); border-bottom-left-radius: 2px; }
 
-        /* Barra de Mensagem */
+        /* Input Bar */
         .input-bar { background: var(--bg-panel); padding: 8px 15px; display: flex; align-items: center; gap: 10px; z-index: 10; }
         .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
         .icon-btn { fill: var(--text-dim); cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .icon-btn:hover { fill: var(--accent); }
 
-        /* VIEWER DE STATUS (NOVO) */
+        /* Viewer de Status */
         #status-viewer { position: fixed; inset: 0; background: black; z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        .status-content { position: relative; width: 100%; max-width: 450px; height: 100%; display: flex; align-items: center; justify-content: center; background: #000; }
+        .status-content { position: relative; width: 100%; max-width: 450px; height: 100%; display: flex; align-items: center; justify-content: center; }
         .status-media-box { width: 100%; height: 100%; object-fit: contain; }
         .status-overlay { position: absolute; top: 0; width: 100%; padding: 45px 20px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); display: flex; align-items: center; gap: 10px; z-index: 10; }
         .status-title-text { position: absolute; bottom: 80px; width: 100%; text-align: center; padding: 20px; font-size: 19px; text-shadow: 2px 2px 5px rgba(0,0,0,1); z-index: 10; color: white; }
@@ -64,21 +61,12 @@
 
         /* Modais */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-        .modal-content { background: var(--bg-panel); padding: 30px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.05); }
-        .modal-content h3 { margin-bottom: 20px; font-size: 22px; color: var(--accent); }
-        
-        .id-badge { background: #111b21; padding: 15px; border-radius: 15px; border: 1px dashed var(--accent); color: var(--accent); font-size: 24px; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; }
-        
-        .modal-content label { display: block; text-align: left; font-size: 12px; color: var(--text-dim); margin: 10px 0 5px 5px; text-transform: uppercase; }
+        .modal-content { background: var(--bg-panel); padding: 30px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; }
         .modal-content input { width: 100%; padding: 14px; background: #111b21; border: 1px solid #3b4a54; color: white; border-radius: 12px; margin-bottom: 15px; outline: none; }
-        .modal-content input:focus { border-color: var(--accent); }
-
-        .btn-action { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        .btn-action:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-action { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
         
         #emoji-picker { position: absolute; bottom: 75px; left: 15px; background: var(--glass); backdrop-filter: blur(10px); width: 320px; max-height: 280px; overflow-y: auto; display: none; grid-template-columns: repeat(8, 1fr); padding: 15px; border-radius: 20px; z-index: 100; border: 1px solid rgba(255,255,255,0.1); }
-        .emoji-item { font-size: 24px; padding: 8px; cursor: pointer; text-align: center; border-radius: 10px; }
-        .emoji-item:hover { background: rgba(255,255,255,0.1); transform: scale(1.2); }
+        .emoji-item { font-size: 24px; padding: 8px; cursor: pointer; text-align: center; }
 
         .active { display: flex !important; }
         .hidden { display: none !important; }
@@ -89,8 +77,8 @@
 
     <div id="login-screen" style="position:fixed; inset:0; background:var(--bg-main); z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div style="font-size: 80px; margin-bottom: 10px;">👻</div>
-        <h1 style="margin-bottom: 30px; letter-spacing: 1px;">GhostChat <span style="color:var(--accent)">PRO</span></h1>
-        <button onclick="handleLogin()" class="btn-action" style="width: auto; padding: 15px 60px; border-radius: 50px;">ENTRAR NO ANONIMATO</button>
+        <h1>GhostChat <span style="color:var(--accent)">PRO</span></h1>
+        <button onclick="handleLogin()" class="btn-action" style="width: auto; padding: 15px 60px; border-radius: 50px; margin-top: 20px;">ENTRAR NO ANONIMATO</button>
     </div>
 
     <div id="app" class="hidden">
@@ -116,19 +104,18 @@
             <div class="chat-list" id="chat-list-ui"></div>
         </div>
 
-        <div class="main-chat" id="chat-bg-area" style="background-image: url('https://cure-production.s3.amazonaws.com/image_path/191/original_wallpaper.png');">
+        <div class="main-chat" id="chat-bg-area">
             <div class="chat-header" id="header-ui" style="visibility:hidden">
-                <div class="header-user">
+                <div style="display: flex; align-items: center;">
                     <img src="" id="target-pfp" class="avatar" style="margin-right: 15px;">
                     <h4 id="target-name">Nome</h4>
                 </div>
-                <div class="icon-btn" onclick="openModal('modal-wallpaper')" title="Mudar Fundo">
+                <div class="icon-btn" onclick="openModal('modal-wallpaper')">
                     <svg viewBox="0 0 24 24" width="24" height="24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3z"></path></svg>
                 </div>
             </div>
 
             <div id="messages-container"></div>
-            
             <div id="emoji-picker"></div>
 
             <div class="input-bar">
@@ -139,9 +126,7 @@
                     <svg viewBox="0 0 24 24" width="26" height="26"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg>
                 </label>
                 <input type="file" id="img-upload" accept="image/*" style="display:none">
-
                 <input type="text" id="msg-input" placeholder="Conversar anonimamente..." autocomplete="off">
-                
                 <div class="icon-btn" onclick="handleSendMsg()">
                     <svg viewBox="0 0 24 24" width="26" height="26" fill="var(--accent)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
                 </div>
@@ -159,14 +144,19 @@
             <div id="sv-media-container" style="width:100%; height:100%;"></div>
             <div class="status-title-text" id="sv-title"></div>
         </div>
-        <button onclick="closeStatus()" style="position:fixed; top:20px; right:20px; background:rgba(0,0,0,0.5); border:none; color:white; font-size:30px; cursor:pointer; width:45px; height:45px; border-radius:50%; z-index:100;">&times;</button>
+        <button onclick="closeStatus()" style="position:fixed; top:20px; right:20px; background:rgba(0,0,0,0.5); border:none; color:white; font-size:30px; cursor:pointer; width:45px; height:45px; border-radius:50%;">&times;</button>
     </div>
 
     <div id="modal-status-create" class="modal">
         <div class="modal-content">
             <h3>Novo Status</h3>
             <input type="text" id="st-title" placeholder="Escreva uma legenda...">
-            <input type="text" id="st-media" placeholder="Link da Imagem ou Vídeo (.mp4)">
+            <label class="btn-action" style="display:block; margin-bottom:10px; cursor:pointer;">
+                UPLOAD DE IMAGEM
+                <input type="file" id="st-upload" accept="image/*" style="display:none">
+            </label>
+            <p style="color:var(--text-dim); font-size:12px; margin:10px 0;">OU</p>
+            <input type="text" id="st-media" placeholder="Link da Imagem/Vídeo (.mp4)">
             <button class="btn-action" onclick="postStatus()">POSTAR STATUS</button>
             <button style="background:none; border:none; color:var(--text-dim); margin-top:15px; cursor:pointer;" onclick="closeModals()">CANCELAR</button>
         </div>
@@ -175,44 +165,31 @@
     <div id="modal-profile" class="modal">
         <div class="modal-content">
             <h3>Configurações de Perfil</h3>
-            <label>Seu ID Fantasma</label>
-            <div class="id-badge" id="display-id">----</div>
-            <label>Como os outros te veem</label>
+            <div id="display-id" style="font-weight:bold; color:var(--accent); font-size:24px; margin:15px 0;">----</div>
             <input type="text" id="in-name" placeholder="Seu nome">
-            <label>Link da sua foto (URL)</label>
             <input type="text" id="in-pic" placeholder="URL da imagem">
             <button class="btn-action" onclick="saveProfile()">ATUALIZAR PERFIL</button>
             <button style="background:none; border:none; color:var(--text-dim); margin-top:15px; cursor:pointer;" onclick="closeModals()">FECHAR</button>
         </div>
     </div>
 
-    <div id="modal-add" class="modal">
-        <div class="modal-content">
-            <div style="font-size: 50px; margin-bottom: 10px;">🔍</div>
-            <h3>Localizar Fantasma</h3>
-            <p style="color:var(--text-dim); font-size: 14px; margin-bottom: 20px;">Insira o código de 4 dígitos do seu amigo para iniciar uma conversa criptografada.</p>
-            <input type="text" id="search-id" placeholder="Ex: 8842" style="text-align: center; font-size: 20px; letter-spacing: 5px;">
-            <button class="btn-action" onclick="findGhost()">BUSCAR E CONECTAR</button>
-            <button style="background:none; border:none; color:var(--text-dim); margin-top:15px; cursor:pointer;" onclick="closeModals()">CANCELAR</button>
-        </div>
-    </div>
+    <div id="modal-add" class="modal"><div class="modal-content">
+        <h3>Localizar Fantasma</h3>
+        <input type="text" id="search-id" placeholder="Ex: 8842">
+        <button class="btn-action" onclick="findGhost()">CONECTAR</button>
+    </div></div>
 
-    <div id="modal-wallpaper" class="modal">
-        <div class="modal-content">
-            <h3>Papel de Parede</h3>
-            <p style="color:var(--text-dim); font-size: 14px; margin-bottom: 20px;">Cole o link de uma imagem para mudar o fundo desta conversa.</p>
-            <input type="text" id="in-wall" placeholder="URL da imagem (jpg, png)">
-            <button class="btn-action" onclick="applyWallpaper()">APLICAR FUNDO</button>
-            <button style="background:none; border:none; color:var(--text-dim); margin-top:15px; cursor:pointer;" onclick="closeModals()">RESETAR PADRÃO</button>
-        </div>
-    </div>
+    <div id="modal-wallpaper" class="modal"><div class="modal-content">
+        <h3>Papel de Parede</h3>
+        <input type="text" id="in-wall" placeholder="URL da imagem">
+        <button class="btn-action" onclick="applyWallpaper()">APLICAR</button>
+    </div></div>
 
     <div id="modal-delete" class="modal">
         <div class="modal-content">
             <h3>Apagar Mensagem?</h3>
-            <button class="btn-action" id="btn-del-everyone" style="background:var(--danger); margin-bottom: 10px;">APAGAR PARA TODOS</button>
-            <button class="btn-action" id="btn-del-me" style="background:var(--bg-main); border:1px solid var(--text-dim);">APAGAR PARA MIM</button>
-            <button style="background:none; border:none; color:var(--text-dim); margin-top:15px; cursor:pointer;" onclick="closeModals()">CANCELAR</button>
+            <button class="btn-action" id="btn-del-everyone" style="background:var(--danger); margin-bottom:10px;">PARA TODOS</button>
+            <button class="btn-action" id="btn-del-me">PARA MIM</button>
         </div>
     </div>
 
@@ -242,45 +219,49 @@
             if (user) {
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
-                
                 if (userSnap.exists()) {
                     myData = userSnap.data();
-                    localStorage.setItem('ghost_id', myData.ghostId);
                 } else {
                     const gid = Math.floor(1000 + Math.random() * 9000).toString();
-                    myData = { 
-                        uid: user.uid, 
-                        ghostId: gid, 
-                        name: localStorage.getItem('ghost_name') || `Ghost#${gid}`, 
-                        pic: localStorage.getItem('ghost_pic') || `https://api.dicebear.com/7.x/bottts/svg?seed=${gid}` 
-                    };
+                    myData = { uid: user.uid, ghostId: gid, name: `Ghost#${gid}`, pic: `https://api.dicebear.com/7.x/bottts/svg?seed=${gid}` };
                     await setDoc(userRef, myData);
-                    localStorage.setItem('ghost_id', gid);
                 }
-
                 document.getElementById('my-pfp').src = myData.pic;
-                document.getElementById('my-status-pfp').src = myData.pic; // NOVO
+                document.getElementById('my-status-pfp').src = myData.pic;
                 document.getElementById('display-id').innerText = myData.ghostId;
                 document.getElementById('in-name').value = myData.name;
                 document.getElementById('in-pic').value = myData.pic;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
                 loadSidebar();
-                loadStatus(); // NOVO
+                loadStatus();
             }
         });
 
-        // --- SISTEMA DE STATUS (NOVO) ---
+        // --- STATUS COM UPLOAD ---
+        let stUploadData = "";
+        document.getElementById('st-upload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => { stUploadData = reader.result; alert("Imagem carregada!"); };
+            }
+        });
+
         window.postStatus = async () => {
             const title = document.getElementById('st-title').value;
-            const media = document.getElementById('st-media').value;
-            if(!media) return alert("Cole um link de imagem ou vídeo!");
+            const link = document.getElementById('st-media').value;
+            const media = stUploadData || link;
+
+            if(!media) return alert("Selecione um arquivo ou cole um link!");
 
             await addDoc(collection(db, "status"), {
                 uid: myData.uid, name: myData.name, pic: myData.pic,
                 title, media, timestamp: serverTimestamp()
             });
             
+            stUploadData = "";
             document.getElementById('st-title').value = '';
             document.getElementById('st-media').value = '';
             closeModals();
@@ -305,22 +286,14 @@
             const viewer = document.getElementById('status-viewer');
             const mediaBox = document.getElementById('sv-media-container');
             const bar = document.getElementById('status-timer');
-            
             viewer.style.display = 'flex';
             document.getElementById('sv-pfp').src = s.pic;
             document.getElementById('sv-name').innerText = s.name;
             document.getElementById('sv-title').innerText = s.title || "";
-            
-            const isVideo = s.media.toLowerCase().includes('.mp4');
+            const isVideo = s.media.startsWith('data:video') || s.media.toLowerCase().includes('.mp4');
             mediaBox.innerHTML = isVideo ? `<video src="${s.media}" autoplay class="status-media-box"></video>` : `<img src="${s.media}" class="status-media-box">`;
-            
-            bar.style.transition = 'none';
-            bar.style.width = '0%';
-            setTimeout(() => {
-                bar.style.transition = 'width 6s linear';
-                bar.style.width = '100%';
-            }, 100);
-
+            bar.style.transition = 'none'; bar.style.width = '0%';
+            setTimeout(() => { bar.style.transition = 'width 6s linear'; bar.style.width = '100%'; }, 100);
             clearTimeout(statusTimer);
             statusTimer = setTimeout(closeStatus, 6000);
         };
@@ -331,46 +304,20 @@
             clearTimeout(statusTimer);
         };
 
-        // --- RESTO DO SEU SISTEMA (CHAT, PERFIL, WALLPAPER) ---
-        window.saveProfile = async () => {
-            myData.name = document.getElementById('in-name').value;
-            myData.pic = document.getElementById('in-pic').value;
-            localStorage.setItem('ghost_name', myData.name);
-            localStorage.setItem('ghost_pic', myData.pic);
-            await setDoc(doc(db, "users", auth.currentUser.uid), myData, { merge: true });
-            closeModals();
-            location.reload();
-        };
-
-        window.applyWallpaper = () => {
-            const url = document.getElementById('in-wall').value;
-            if(url) {
-                document.getElementById('chat-bg-area').style.backgroundImage = `url('${url}')`;
-                localStorage.setItem(`wall_${activeChatId}`, url);
-            }
-            closeModals();
-        };
-
+        // --- CHAT SYSTEM ---
         window.handleSendMsg = async () => {
             const input = document.getElementById('msg-input');
             if(input.value.trim() && activeChatId) {
                 const text = input.value; input.value = '';
                 await addDoc(collection(db, "messages"), { 
-                    chatId: activeChatId, 
-                    participants: [myData.uid, activeTarget.uid], 
-                    senderId: myData.uid, 
-                    content: text, 
-                    type: 'text', 
-                    timestamp: serverTimestamp(),
-                    deletedFor: [] 
+                    chatId: activeChatId, participants: [myData.uid, activeTarget.uid], 
+                    senderId: myData.uid, content: text, type: 'text', timestamp: serverTimestamp(), deletedFor: [] 
                 });
-                document.getElementById('emoji-picker').style.display = 'none';
             }
         };
 
         function loadSidebar() {
-            const q = query(collection(db, "messages"), where("participants", "array-contains", myData.uid));
-            onSnapshot(q, async (snap) => {
+            onSnapshot(query(collection(db, "messages"), where("participants", "array-contains", myData.uid)), async (snap) => {
                 const list = document.getElementById('chat-list-ui');
                 const uids = new Set();
                 snap.forEach(d => d.data().participants.forEach(p => { if(p !== myData.uid) uids.add(p); }));
@@ -395,29 +342,22 @@
             document.getElementById('header-ui').style.visibility = 'visible';
             document.getElementById('target-name').innerText = target.name;
             document.getElementById('target-pfp').src = target.pic;
-            
-            const savedWall = localStorage.getItem(`wall_${activeChatId}`);
-            document.getElementById('chat-bg-area').style.backgroundImage = savedWall ? `url('${savedWall}')` : `url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')`;
-
             if(unsub) unsub();
-            const q = query(collection(db, "messages"), where("chatId", "==", activeChatId), orderBy("timestamp", "asc"));
-            unsub = onSnapshot(q, (snap) => {
+            unsub = onSnapshot(query(collection(db, "messages"), where("chatId", "==", activeChatId), orderBy("timestamp", "asc")), (snap) => {
                 const container = document.getElementById('messages-container');
                 container.innerHTML = '';
                 snap.forEach(d => {
                     const m = d.data();
-                    const msgId = d.id;
-                    const isOwn = m.senderId === myData.uid;
                     if (m.deletedFor && m.deletedFor.includes(myData.uid)) return;
                     const wrap = document.createElement('div');
-                    wrap.className = `msg-wrapper ${isOwn ? 'own' : 'other'}`;
+                    wrap.className = `msg-wrapper ${m.senderId === myData.uid ? 'own' : 'other'}`;
                     let html = m.type === 'image' ? `<img src="${m.content}" class="chat-img">` : m.content;
-                    wrap.innerHTML = `<div class="msg-bubble" id="msg-${msgId}">${html}</div>`;
+                    wrap.innerHTML = `<div class="msg-bubble">${html}</div>`;
                     wrap.onclick = () => {
                         openModal('modal-delete');
-                        document.getElementById('btn-del-everyone').style.display = isOwn ? 'block' : 'none';
-                        document.getElementById('btn-del-everyone').onclick = () => deleteMessage(msgId, true);
-                        document.getElementById('btn-del-me').onclick = () => deleteMessage(msgId, false);
+                        document.getElementById('btn-del-everyone').style.display = m.senderId === myData.uid ? 'block' : 'none';
+                        document.getElementById('btn-del-everyone').onclick = () => deleteMessage(d.id, true);
+                        document.getElementById('btn-del-me').onclick = () => deleteMessage(d.id, false);
                     };
                     container.appendChild(wrap);
                 });
@@ -426,18 +366,12 @@
         }
 
         async function deleteMessage(msgId, forEveryone) {
-            if (forEveryone) {
-                await deleteDoc(doc(db, "messages", msgId));
-            } else {
+            if (forEveryone) await deleteDoc(doc(db, "messages", msgId));
+            else {
                 const msgRef = doc(db, "messages", msgId);
-                const msgSnap = await getDoc(msgRef);
-                if (msgSnap.exists()) {
-                    let deletedFor = msgSnap.data().deletedFor || [];
-                    if (!deletedFor.includes(myData.uid)) {
-                        deletedFor.push(myData.uid);
-                        await updateDoc(msgRef, { deletedFor: deletedFor });
-                    }
-                }
+                const snap = await getDoc(msgRef);
+                let del = snap.data().deletedFor || [];
+                if (!del.includes(myData.uid)) { del.push(myData.uid); await updateDoc(msgRef, { deletedFor: del }); }
             }
             closeModals();
         }
@@ -449,33 +383,39 @@
                 reader.readAsDataURL(file);
                 reader.onload = async () => {
                     await addDoc(collection(db, "messages"), { 
-                        chatId: activeChatId, 
-                        participants: [myData.uid, activeTarget.uid], 
-                        senderId: myData.uid, 
-                        content: reader.result, 
-                        type: 'image', 
-                        timestamp: serverTimestamp(),
-                        deletedFor: [] 
+                        chatId: activeChatId, participants: [myData.uid, activeTarget.uid], 
+                        senderId: myData.uid, content: reader.result, type: 'image', timestamp: serverTimestamp(), deletedFor: [] 
                     });
                 };
             }
         });
 
+        // Emojis e Auxiliares
         const emojis = "😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😜🤪😝🤑🤗🤭🤫🤔😐😑😶😏😒🙄😬🤥😌😔😪🤤😴😷🤒🤕🤢🤮🤧😵🤯🤠🥳😎🤓🧐😕😟🙁☹️😮😯😲😳🥺😦😧😨😰😥😢😭😤😠😡🤬😈👿💀☠️👻👽🤖";
         const picker = document.getElementById('emoji-picker');
         emojis.match(/./gu).forEach(e => {
             const s = document.createElement('span'); s.className = 'emoji-item'; s.innerText = e;
-            s.onclick = () => document.getElementById('msg-input').value += e;
-            picker.appendChild(s);
+            s.onclick = () => document.getElementById('msg-input').value += e; picker.appendChild(s);
         });
 
         window.toggleEmojis = () => picker.style.display = picker.style.display === 'grid' ? 'none' : 'grid';
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        window.saveProfile = async () => {
+            const n = document.getElementById('in-name').value;
+            const p = document.getElementById('in-pic').value;
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { name: n, pic: p });
+            location.reload();
+        };
+        window.applyWallpaper = () => {
+            document.getElementById('chat-bg-area').style.backgroundImage = `url('${document.getElementById('in-wall').value}')`;
+            closeModals();
+        };
         window.findGhost = async () => {
             const id = document.getElementById('search-id').value;
             const s = await getDocs(query(collection(db, "users"), where("ghostId", "==", id), limit(1)));
-            if(!s.empty) { startChat(s.docs[0].data()); closeModals(); } else alert("ID Fantasma não encontrado!");
+            if(!s.empty) startChat(s.docs[0].data());
+            closeModals();
         };
     </script>
 </body>
