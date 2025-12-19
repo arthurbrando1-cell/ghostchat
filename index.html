@@ -6,11 +6,15 @@
     <title>WhatsApp Web Clone</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .chat-bg { background-color: #efeae2; background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4cfc6' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #374045; border-radius: 3px; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .message-out { background-color: #d9fdd3; }
@@ -23,41 +27,70 @@
         @keyframes blink { 0%, 60%, 100% { opacity: 0; } 30% { opacity: 1; } }
         .online-dot { animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; max-height: 200px; overflow-y: auto; }
+        .emoji-btn { font-size: 24px; padding: 4px; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
+        .emoji-btn:hover { background: #374045; }
     </style>
 </head>
 <body class="bg-[#111b21] h-screen overflow-hidden">
-    <!-- Login Screen -->
-    <div id="loginScreen" class="flex items-center justify-center h-screen">
+    <!-- Auth Screen -->
+    <div id="authScreen" class="flex items-center justify-center h-screen">
         <div class="bg-[#202c33] p-8 rounded-lg shadow-2xl w-96">
             <div class="flex items-center justify-center mb-6">
                 <svg class="w-16 h-16 text-[#00a884]" viewBox="0 0 39 39" fill="currentColor">
                     <path d="M10.7 32.8l.6.3c2.5 1.5 5.3 2.2 8.1 2.2 8.8 0 16-7.2 16-16 0-4.2-1.7-8.3-4.7-11.3s-7-4.7-11.3-4.7c-8.8 0-16 7.2-15.9 16.1 0 3 .9 5.9 2.4 8.4l.4.6-1.6 5.9 6-1.5z"></path>
-                    <path fill="#fff" d="M32.4 6.4C29 2.9 24.3 1 19.5 1 9.3 1 1.1 9.3 1.2 19.4c0 3.2.9 6.3 2.4 9.1L1 38l9.7-2.5c2.7 1.5 5.7 2.2 8.7 2.2 10.1 0 18.3-8.3 18.3-18.4 0-4.9-1.9-9.5-5.3-12.9zM19.5 34.6c-2.7 0-5.4-.7-7.7-2.1l-.6-.3-5.8 1.5L6.9 28l-.4-.6c-1.5-2.4-2.3-5.2-2.3-8 0-8.4 6.8-15.2 15.3-15.2 4.1 0 7.9 1.6 10.8 4.5 2.9 2.9 4.5 6.7 4.5 10.8-.1 8.4-6.9 15.1-15.3 15.1zm8.4-11.3c-.5-.2-2.7-1.3-3.1-1.5-.4-.2-.7-.2-1 .2-.3.5-1.2 1.5-1.5 1.8-.3.3-.5.3-1 .1s-2-0.7-3.8-2.3c-1.4-1.2-2.3-2.8-2.6-3.2-.3-.5 0-.7.2-1 .2-.2.5-.5.7-.8.2-.3.3-.5.5-.8.2-.3.1-.6 0-.8-.1-.2-1-2.4-1.4-3.3-.4-.9-.7-.8-1-.8-.3 0-.6 0-.9 0s-.8.1-1.3.6-1.6 1.6-1.6 3.9 1.7 4.5 1.9 4.8c.2.3 3.3 5 7.9 7 1.1.5 2 .8 2.6 1 1.1.3 2.1.3 2.9.2.9-.1 2.7-1.1 3.1-2.2.4-1.1.4-2 .3-2.2-.1-.2-.4-.3-.9-.5z"></path>
+                    <path fill="#111b21" d="M32.4 6.4C29 2.9 24.3 1 19.5 1 9.3 1 1.1 9.3 1.2 19.4c0 3.2.9 6.3 2.4 9.1L1 38l9.7-2.5c2.7 1.5 5.7 2.2 8.7 2.2 10.1 0 18.3-8.3 18.3-18.4 0-4.9-1.9-9.5-5.3-12.9zM19.5 34.6c-2.7 0-5.4-.7-7.7-2.1l-.6-.3-5.8 1.5L6.9 28l-.4-.6c-1.5-2.4-2.3-5.2-2.3-8 0-8.4 6.8-15.2 15.3-15.2 4.1 0 7.9 1.6 10.8 4.5 2.9 2.9 4.5 6.7 4.5 10.8-.1 8.4-6.9 15.1-15.3 15.1zm8.4-11.3c-.5-.2-2.7-1.3-3.1-1.5-.4-.2-.7-.2-1 .2-.3.5-1.2 1.5-1.5 1.8-.3.3-.5.3-1 .1s-2-0.7-3.8-2.3c-1.4-1.2-2.3-2.8-2.6-3.2-.3-.5 0-.7.2-1 .2-.2.5-.5.7-.8.2-.3.3-.5.5-.8.2-.3.1-.6 0-.8-.1-.2-1-2.4-1.4-3.3-.4-.9-.7-.8-1-.8-.3 0-.6 0-.9 0s-.8.1-1.3.6-1.6 1.6-1.6 3.9 1.7 4.5 1.9 4.8c.2.3 3.3 5 7.9 7 1.1.5 2 .8 2.6 1 1.1.3 2.1.3 2.9.2.9-.1 2.7-1.1 3.1-2.2.4-1.1.4-2 .3-2.2-.1-.2-.4-.3-.9-.5z"></path>
                 </svg>
             </div>
             <h1 class="text-2xl font-light text-white text-center mb-6">WhatsApp Web</h1>
-            <div class="space-y-4">
-                <input type="text" id="userName" placeholder="Seu nome" 
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="space-y-4">
+                <input type="email" id="loginEmail" placeholder="Email" 
                     class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
-                <input type="tel" id="userPhone" placeholder="Seu telefone (ex: 11999999999)" 
+                <input type="password" id="loginPassword" placeholder="Senha" 
                     class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
                 <button onclick="login()" 
                     class="w-full py-3 bg-[#00a884] text-white rounded-lg hover:bg-[#02906f] transition-colors font-medium">
                     Entrar
                 </button>
+                <p class="text-center text-[#8696a0]">
+                    Não tem conta? <button onclick="showRegister()" class="text-[#00a884] hover:underline">Registrar</button>
+                </p>
             </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="space-y-4 hidden">
+                <input type="text" id="registerName" placeholder="Nome de usuário" 
+                    class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
+                <input type="email" id="registerEmail" placeholder="Email" 
+                    class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
+                <input type="password" id="registerPassword" placeholder="Senha (mín. 6 caracteres)" 
+                    class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
+                <button onclick="register()" 
+                    class="w-full py-3 bg-[#00a884] text-white rounded-lg hover:bg-[#02906f] transition-colors font-medium">
+                    Criar conta
+                </button>
+                <p class="text-center text-[#8696a0]">
+                    Já tem conta? <button onclick="showLogin()" class="text-[#00a884] hover:underline">Entrar</button>
+                </p>
+            </div>
+
+            <div id="authError" class="hidden mt-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-400 text-sm text-center"></div>
         </div>
     </div>
 
     <!-- Main App -->
     <div id="mainApp" class="hidden h-screen flex">
         <!-- Left Panel - Chats List -->
-        <div class="w-[30%] min-w-[300px] bg-[#111b21] flex flex-col border-r border-[#222d34]">
+        <div id="leftPanel" class="w-[30%] min-w-[300px] bg-[#111b21] flex flex-col border-r border-[#222d34]">
             <!-- Header -->
             <div class="h-14 bg-[#202c33] flex items-center justify-between px-4">
-                <div class="flex items-center gap-3">
-                    <div id="myAvatar" class="w-10 h-10 rounded-full bg-[#6b7175] flex items-center justify-center text-white font-medium"></div>
-                    <span id="myName" class="text-white text-sm"></span>
+                <div class="flex items-center gap-3 cursor-pointer" onclick="showProfileModal()">
+                    <div id="myAvatarHeader" class="w-10 h-10 rounded-full bg-[#6b7175] flex items-center justify-center text-white font-medium overflow-hidden">
+                        <img id="myAvatarImg" class="w-full h-full object-cover hidden" />
+                        <span id="myAvatarLetter"></span>
+                    </div>
                 </div>
                 <div class="flex items-center gap-5 text-[#aebac1]">
                     <button onclick="showNewChat()" class="hover:text-white" title="Nova conversa">
@@ -65,9 +98,10 @@
                             <path d="M19.005 3.175H4.674C3.642 3.175 3 3.789 3 4.821V21.02l3.544-3.514h12.461c1.033 0 2.064-1.06 2.064-2.093V4.821c-.001-1.032-1.032-1.646-2.064-1.646zm-4.989 9.869H7.041V11.1h6.975v1.944zm3-4H7.041V7.1h9.975v1.944z"></path>
                         </svg>
                     </button>
-                    <button onclick="toggleMenu()" class="hover:text-white">
+                    <button onclick="logout()" class="hover:text-white" title="Sair">
                         <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
-                            <path d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"></path>
+                            <path d="M16 13v-2H7V8l-5 4 5 4v-3z"></path>
+                            <path d="M20 3h-9c-1.103 0-2 .897-2 2v4h2V5h9v14h-9v-4H9v4c0 1.103.897 2 2 2h9c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2z"></path>
                         </svg>
                     </button>
                 </div>
@@ -79,13 +113,13 @@
                     <svg viewBox="0 0 24 24" class="w-5 h-5 text-[#8696a0]" fill="currentColor">
                         <path d="M15.009 13.805h-.636l-.22-.219a5.184 5.184 0 0 0 1.256-3.386 5.207 5.207 0 1 0-5.207 5.208 5.183 5.183 0 0 0 3.385-1.255l.221.22v.635l4.004 3.999 1.194-1.195-3.997-4.007zm-4.808 0a3.605 3.605 0 1 1 0-7.21 3.605 3.605 0 0 1 0 7.21z"></path>
                     </svg>
-                    <input type="text" id="searchInput" oninput="searchChats()" placeholder="Pesquisar ou começar uma nova conversa" 
+                    <input type="text" id="searchInput" oninput="searchChats()" placeholder="Pesquisar conversas" 
                         class="bg-transparent text-white text-sm ml-4 w-full focus:outline-none placeholder-[#8696a0]">
                 </div>
             </div>
 
             <!-- Chats List -->
-            <div id="chatsList" class="flex-1 overflow-y-auto scrollbar-hide"></div>
+            <div id="chatsList" class="flex-1 overflow-y-auto scrollbar-thin"></div>
         </div>
 
         <!-- Right Panel - Chat Area -->
@@ -93,11 +127,13 @@
             <!-- Empty State -->
             <div id="emptyState" class="flex-1 flex flex-col items-center justify-center bg-[#222e35]">
                 <div class="text-center">
-                    <svg class="w-[320px] h-[188px] mx-auto text-[#364147]" viewBox="0 0 303 172" fill="currentColor">
-                        <path d="M229.565 160.229c32.647-16.166 54.391-50.161 54.391-89.073 0-55.098-45.022-99.775-100.554-99.775-34.178 0-64.377 17.14-82.298 43.249-4.829-.632-9.754-.964-14.759-.964C38.63 13.666 0 52.056 0 99.573c0 21.026 7.567 40.283 20.133 55.264-.874 6.676-3.876 14.264-8.963 22.396l-.27.467-.038.071c-.086.166-.166.338-.239.51-.217.485-.391.987-.531 1.5-.069.259-.13.535-.184.825l-.037.218-.014.094c-.063.417-.098.833-.107 1.264l-.002.06v.139c.009.621.059 1.247.146 1.882l.018.122.033.208c.084.511.21 1.017.37 1.523.029.091.059.187.092.283.098.287.209.57.332.854.147.333.32.673.517 1.012.092.159.19.32.294.48.174.271.371.546.589.82.132.167.27.339.42.513.136.158.279.32.43.484.086.093.175.188.27.284l.15.154c.24.24.499.472.769.69.129.106.26.21.396.311.093.069.187.137.283.203.169.118.34.231.516.34l.087.052c.037.021.076.042.113.064.106.06.212.12.321.178l.105.052c.11.055.222.106.335.157.062.028.124.054.187.08.112.046.225.089.338.131.076.028.153.054.229.081.109.037.219.071.329.104l.245.071c.106.029.212.056.319.081.117.028.234.053.352.077.086.018.172.034.259.049.135.024.27.045.407.063.092.012.184.024.276.034.109.011.219.021.329.028.145.01.289.017.434.02.096.001.192.002.288.001.211-.003.422-.015.633-.037l.099-.012c.722-.09 1.444-.262 2.168-.536.413-.156.846-.363 1.299-.627l.083-.047.043-.025.102-.062c10.636-6.391 23.559-11.139 37.81-13.203 6.402 1.334 13.041 2.034 19.846 2.034 7.039 0 13.897-.753 20.488-2.183.027.005.054.009.081.015l.073.014c10.96 1.603 21.264 4.726 30.538 8.93.111.053.22.1.326.14a6.21 6.21 0 00.656.223c.093.026.186.048.278.068.181.04.362.07.542.091l.158.014.143.009c.087.003.175.004.262.003l.068-.001c.106-.003.212-.009.318-.018.072-.007.144-.016.216-.027.112-.016.224-.037.337-.062.058-.013.115-.028.174-.045a3.008 3.008 0 00.479-.163l.069-.032c.074-.035.148-.073.223-.115l.135-.078c.05-.029.098-.06.148-.092.021-.013.041-.028.064-.042l.062-.044.087-.066.065-.052.073-.06.087-.078.1-.096c.05-.052.101-.105.149-.162l.045-.052c.061-.073.119-.147.175-.223.022-.029.041-.058.063-.088.038-.055.077-.111.112-.169a2.36 2.36 0 00.095-.161c.024-.046.048-.094.071-.14l.026-.055.05-.12.038-.097.023-.069.025-.081c.021-.072.04-.143.057-.216.006-.025.011-.053.016-.079a2.865 2.865 0 00.042-.282v-.003c.004-.04.008-.08.01-.121l.002-.028a3.544 3.544 0 00-.011-.354v-.006c-.004-.051-.01-.103-.018-.155l-.004-.028a2.624 2.624 0 00-.118-.451l-.009-.028a2.618 2.618 0 00-.074-.188l-.013-.032a2.637 2.637 0 00-.117-.242l-.012-.022a3.41 3.41 0 00-.24-.384l-.051-.07a8.358 8.358 0 00-.126-.166c-.024-.029-.051-.058-.077-.088l-.046-.052c-.12-.127-.238-.237-.347-.327l-.032-.024a6.17 6.17 0 00-.11-.077c-.04-.027-.08-.052-.12-.076-.051-.03-.102-.059-.152-.085-.03-.016-.06-.03-.089-.044-.025-.012-.05-.023-.074-.033-.077-.033-.152-.062-.224-.086-.056-.019-.111-.034-.165-.046a1.453 1.453 0 00-.246-.039l-.056-.003c-.032-.001-.063-.001-.093 0a.823.823 0 00-.091.008c-.019.002-.038.006-.056.009l-.093.02c-.029.008-.058.018-.087.029l-.055.022c-.038.016-.076.035-.113.056l-.046.027c-.067.042-.132.093-.196.152l-.028.025c-.063.06-.127.132-.196.22-.031.039-.063.082-.097.128a4.256 4.256 0 00-.123.186 4.791 4.791 0 00-.2.362l-.053.112a.827.827 0 01-.029.06c-10.521 21.426-35.194 36.153-63.267 36.153-8.036 0-15.727-1.209-22.89-3.462l-.122-.039-.061-.02-.059-.02-.049-.017-.148-.052-.074-.028-.053-.021c-.138-.055-.275-.114-.412-.178l-.038-.019-.161-.079-.033-.017a8.97 8.97 0 01-.507-.29l-.007-.005c-.034-.021-.069-.042-.103-.065l-.057-.037c-.025-.017-.05-.034-.076-.052a6.149 6.149 0 01-.208-.152c-.052-.039-.104-.081-.158-.124-.024-.02-.048-.04-.074-.061-.043-.037-.087-.076-.132-.117-.019-.017-.04-.035-.059-.054a4.714 4.714 0 01-.243-.245l-.038-.042-.035-.04a4.39 4.39 0 01-.168-.202 5.247 5.247 0 01-.337-.475l-.021-.034-.058-.098a6.578 6.578 0 01-.177-.323l-.009-.019c-.042-.084-.085-.172-.126-.264a7.326 7.326 0 01-.147-.35 9.71 9.71 0 01-.318-.934 13.322 13.322 0 01-.168-.674c-.027-.124-.053-.25-.076-.378a16.073 16.073 0 01-.063-.372l-.048-.344-.037-.305c-.021-.207-.037-.414-.048-.621l-.007-.162-.008-.323v-.161c.001-.185.006-.37.016-.555l.005-.121c.007-.151.017-.302.03-.452l.004-.05.016-.173c.01-.096.02-.191.033-.286l.007-.054.021-.153c.018-.125.039-.249.062-.373l.025-.124c.022-.109.046-.217.073-.325l.032-.127a8.64 8.64 0 01.208-.671l.006-.016c.044-.129.092-.257.144-.385l.043-.102c.035-.082.072-.163.111-.245l.025-.051c.046-.097.095-.193.147-.289l.035-.065.038-.068c.041-.074.084-.148.129-.221l.043-.07.05-.079c.047-.073.097-.147.148-.219l.043-.062c.069-.097.142-.194.218-.29l.003-.004c.161-.203.336-.401.524-.593l.018-.018.03-.03c.073-.073.149-.145.226-.216l.054-.048a8.08 8.08 0 01.339-.283l.028-.021c.078-.062.158-.122.24-.18l.055-.039.044-.03c.107-.073.217-.143.33-.209l.02-.011.048-.028c.1-.058.203-.113.308-.165l.05-.025c.089-.043.179-.083.271-.121l.017-.007c.105-.043.212-.082.32-.117l.038-.012c.09-.029.18-.054.271-.077l.049-.012c.103-.025.206-.045.31-.062l.022-.003c.115-.018.23-.03.346-.036l.048-.002c.063-.002.126-.003.189-.001h.001c.185.003.368.02.55.052l.049.01c.153.028.304.066.453.114l.039.014c.112.037.223.081.332.132l.023.011c.147.07.291.151.432.244l.002.002c.071.048.142.098.211.152l.03.024c.054.043.108.089.162.136l.034.031c.06.055.12.112.179.172l.023.023c.089.092.177.189.263.292l.02.023c.081.098.16.2.237.307l.007.011c.02.028.04.056.059.085.011.016.022.031.032.047.024.036.048.073.072.11.032.052.064.105.095.158l.036.062c.055.099.108.199.158.301l.022.047c.055.116.107.234.155.353l.011.028c.057.145.108.291.153.437l.014.05c.04.133.074.267.103.4l.009.043c.031.147.056.294.074.441l.006.046c.02.16.033.318.038.476v.028c.004.134.002.267-.006.399v.016a5.39 5.39 0 01-.036.399l-.004.032a6.146 6.146 0 01-.069.419l-.007.035a6.893 6.893 0 01-.088.389 7.77 7.77 0 01-.107.39l-.014.043c-.04.136-.084.271-.132.404l-.009.026c-.089.245-.194.484-.315.715l-.018.034a8.384 8.384 0 01-.396.684l-.011.017c-.075.115-.155.227-.239.336l-.01.012-.043.055c-.081.101-.166.198-.254.291l-.035.036c-.082.086-.168.168-.256.246l-.044.038-.05.042c-.078.065-.158.127-.24.186l-.056.04c-.092.065-.187.125-.284.181l-.039.022c-.105.061-.212.117-.321.168l-.048.022c-.096.045-.194.085-.293.121l-.041.015a4.66 4.66 0 01-.35.109l-.03.008c-.131.034-.264.061-.397.08h-.001c-.075.011-.15.019-.225.024l-.045.003c-.057.003-.115.005-.172.005-.05 0-.1-.001-.149-.004l-.04-.002a3.63 3.63 0 01-.215-.025l-.036-.006a3.384 3.384 0 01-.19-.039l-.011-.003a4.088 4.088 0 01-.518-.163c-9.62-3.671-18.076-9.011-25.001-15.549-6.106 3.919-11.521 8.608-16.121 13.835-.028.031-.055.063-.082.095l-.01.012-.073.087-.01.013c-.025.031-.05.062-.076.093l-.011.014-.039.05c-.024.032-.048.065-.073.098l-.014.019-.034.047-.073.104-.015.022-.068.099-.015.022-.065.099-.014.022-.062.098-.013.021-.06.098-.012.021-.057.097-.011.02a12.721 12.721 0 00-.166.299l-.011.022c-.018.034-.036.068-.053.102l-.011.022-.05.101-.011.022-.048.1-.01.022-.046.1-.01.023-.044.1-.009.022-.042.099-.009.023-.04.099-.008.023-.038.098-.008.023-.036.098-.008.023-.034.098-.007.023-.032.098-.007.023-.03.098-.006.023c-.01.032-.02.065-.029.098l-.006.023-.027.098-.006.024-.025.098-.005.024-.024.098-.005.024-.022.098-.004.024-.02.098-.004.024-.018.098-.004.025-.016.098-.003.025-.015.098-.003.025-.012.098-.003.025-.011.099-.002.025-.009.099-.002.025-.007.099-.002.025-.005.099-.001.026-.003.099-.001.026-.002.099v.052l.001.099.001.026.002.099.002.026.004.099.002.026.006.099.002.026.008.099.003.026.009.099.003.026.012.099.004.025.013.098.004.026.016.098.005.025.017.098.005.025.02.098.005.025.022.098.006.025.023.098.006.024.026.098.007.024.028.098.007.024.03.097.008.024.032.097.008.024.034.097.009.024.036.097.01.023.039.096.01.023.041.096.01.023.044.096.011.023.046.095.012.022.049.095.012.022.051.094.013.022.054.094.014.022.057.093.014.021.06.092.015.021.063.091.016.02.066.09.017.02.07.089.017.019.073.088.018.019.077.087.019.018.081.085.02.018.085.083.02.017c6.556 6.377 14.674 11.375 23.82 14.586l-.002.001z"></path>
-                    </svg>
-                    <h2 class="text-[#41525d] text-3xl font-light mt-10">WhatsApp Web</h2>
-                    <p class="text-[#8696a0] mt-4 max-w-md">Envie e receba mensagens sem manter seu celular conectado.</p>
+                    <div class="w-[250px] h-[250px] mx-auto mb-8 rounded-full bg-[#364147] flex items-center justify-center">
+                        <svg class="w-32 h-32 text-[#8696a0]" viewBox="0 0 303 172" fill="currentColor">
+                            <path d="M229.565 160.229c32.647-16.166 54.391-50.161 54.391-89.073 0-55.098-45.022-99.775-100.554-99.775-34.178 0-64.377 17.14-82.298 43.249-4.829-.632-9.754-.964-14.759-.964C38.63 13.666 0 52.056 0 99.573c0 21.026 7.567 40.283 20.133 55.264-.874 6.676-3.876 14.264-8.963 22.396l-.27.467c32.75-5.2 58.242-16.794 76.17-32.544 7.382 1.985 15.124 3.027 23.12 3.027 3.157 0 6.278-.146 9.357-.422 17.696 22.478 45.163 36.909 76.018 36.909 6.318 0 12.487-.616 18.464-1.79 13.233 12.326 31.933 22.233 56.536 26.9-5.09-8.132-8.092-15.72-8.966-22.391z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-[#e9edef] text-3xl font-light mb-4">WhatsApp Web</h2>
+                    <p class="text-[#8696a0] max-w-md">Envie e receba mensagens em tempo real.<br>Clique em "Nova conversa" para começar!</p>
                 </div>
             </div>
 
@@ -105,34 +141,28 @@
             <div id="chatView" class="hidden flex-1 flex flex-col">
                 <!-- Chat Header -->
                 <div class="h-14 bg-[#202c33] flex items-center justify-between px-4">
-                    <div class="flex items-center gap-3 cursor-pointer" onclick="showContactInfo()">
-                        <button class="md:hidden mr-2 text-[#aebac1]" onclick="closeChat(event)">
+                    <div class="flex items-center gap-3 cursor-pointer">
+                        <button class="md:hidden mr-2 text-[#aebac1]" onclick="closeChat()">
                             <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
                                 <path d="M12 4l1.4 1.4L7.8 11H20v2H7.8l5.6 5.6L12 20l-8-8 8-8z"></path>
                             </svg>
                         </button>
-                        <div id="chatAvatar" class="w-10 h-10 rounded-full bg-[#6b7175] flex items-center justify-center text-white font-medium"></div>
+                        <div id="chatAvatar" class="w-10 h-10 rounded-full bg-[#6b7175] flex items-center justify-center text-white font-medium overflow-hidden">
+                            <img id="chatAvatarImg" class="w-full h-full object-cover hidden" />
+                            <span id="chatAvatarLetter"></span>
+                        </div>
                         <div>
                             <h3 id="chatName" class="text-white font-medium"></h3>
                             <p id="chatStatus" class="text-[#8696a0] text-xs"></p>
                         </div>
                     </div>
                     <div class="flex items-center gap-5 text-[#aebac1]">
-                        <button class="hover:text-white">
-                            <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
-                                <path d="M15.9 14.3H15l-.3-.3c1-1.1 1.6-2.7 1.6-4.3 0-3.7-3-6.7-6.7-6.7S3 6 3 9.7s3 6.7 6.7 6.7c1.6 0 3.2-.6 4.3-1.6l.3.3v.8l5.1 5.1 1.5-1.5-5-5.2zm-6.2 0c-2.6 0-4.6-2.1-4.6-4.6s2.1-4.6 4.6-4.6 4.6 2.1 4.6 4.6-2 4.6-4.6 4.6z"></path>
-                            </svg>
-                        </button>
-                        <button class="hover:text-white">
-                            <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
-                                <path d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"></path>
-                            </svg>
-                        </button>
+                        <span id="chatUserId" class="text-xs text-[#8696a0]"></span>
                     </div>
                 </div>
 
                 <!-- Messages Area -->
-                <div id="messagesArea" class="flex-1 overflow-y-auto chat-bg p-4 scrollbar-hide"></div>
+                <div id="messagesArea" class="flex-1 overflow-y-auto chat-bg p-4 scrollbar-thin"></div>
 
                 <!-- Typing Indicator -->
                 <div id="typingIndicator" class="hidden bg-[#202c33] px-4 py-2">
@@ -140,23 +170,23 @@
                 </div>
 
                 <!-- Message Input -->
-                <div class="bg-[#202c33] px-4 py-3 flex items-center gap-3">
-                    <button class="text-[#8696a0] hover:text-[#aebac1]">
+                <div class="bg-[#202c33] px-4 py-3 flex items-center gap-3 relative">
+                    <!-- Emoji Picker -->
+                    <div id="emojiPicker" class="hidden absolute bottom-16 left-4 bg-[#202c33] rounded-lg p-3 shadow-xl border border-[#374045] w-80 z-50">
+                        <div class="emoji-grid scrollbar-thin" id="emojiGrid"></div>
+                    </div>
+                    
+                    <button onclick="toggleEmojiPicker()" class="text-[#8696a0] hover:text-[#aebac1]">
                         <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor">
                             <path d="M9.153 11.603c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962zm-3.204 1.362c-.026-.307-.131 5.218 6.063 5.551 6.066-.25 6.066-5.551 6.066-5.551-6.078 1.416-12.129 0-12.129 0zm11.363 1.108s-.669 1.959-5.051 1.959c-3.505 0-5.388-1.164-5.607-1.959 0 0 5.912 1.055 10.658 0zM11.804 1.011C5.609 1.011.978 6.033.978 12.228s4.826 10.761 11.021 10.761S23.02 18.423 23.02 12.228c.001-6.195-5.021-11.217-11.216-11.217zM12 21.354c-5.273 0-9.381-3.886-9.381-9.159s3.942-9.548 9.215-9.548 9.548 4.275 9.548 9.548c-.001 5.272-4.109 9.159-9.382 9.159zm3.108-9.751c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962z"></path>
                         </svg>
                     </button>
-                    <button class="text-[#8696a0] hover:text-[#aebac1]">
-                        <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor">
-                            <path d="M1.816 15.556v.002c0 1.502.584 2.912 1.646 3.972s2.472 1.647 3.974 1.647a5.58 5.58 0 0 0 3.972-1.645l9.547-9.548c.769-.768 1.147-1.767 1.058-2.817-.079-.968-.548-1.927-1.319-2.698-1.594-1.592-4.068-1.711-5.517-.262l-7.916 7.915c-.881.881-.792 2.25.214 3.261.959.958 2.423 1.053 3.263.215l5.511-5.512c.28-.28.267-.722.053-.936l-.244-.244c-.191-.191-.567-.349-.957.04l-5.506 5.506c-.18.18-.635.127-.976-.214-.098-.097-.576-.613-.213-.973l7.915-7.917c.818-.817 2.267-.699 3.23.262.5.501.802 1.1.849 1.685.051.573-.156 1.111-.589 1.543l-9.547 9.549a3.97 3.97 0 0 1-2.829 1.171 3.975 3.975 0 0 1-2.83-1.173 3.973 3.973 0 0 1-1.172-2.828c0-1.071.415-2.076 1.172-2.83l7.209-7.211c.157-.157.264-.579.028-.814L11.5 4.36a.572.572 0 0 0-.834.018l-7.205 7.207a5.577 5.577 0 0 0-1.645 3.971z"></path>
-                        </svg>
-                    </button>
                     <div class="flex-1">
                         <input type="text" id="messageInput" placeholder="Digite uma mensagem" 
-                            onkeypress="handleKeyPress(event)" oninput="handleTyping()"
+                            onkeydown="handleKeyDown(event)" oninput="handleTyping()"
                             class="w-full px-4 py-2 bg-[#2a3942] text-white rounded-lg focus:outline-none placeholder-[#8696a0]">
                     </div>
-                    <button onclick="sendMessage()" class="text-[#8696a0] hover:text-[#aebac1]">
+                    <button onclick="sendMessage()" class="text-[#00a884] hover:text-[#02906f] transition-colors">
                         <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor">
                             <path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path>
                         </svg>
@@ -167,10 +197,10 @@
     </div>
 
     <!-- New Chat Modal -->
-    <div id="newChatModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div id="newChatModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-[#202c33] rounded-lg w-96 max-h-[80vh] overflow-hidden">
             <div class="p-4 border-b border-[#374045]">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between mb-4">
                     <h3 class="text-white text-lg">Nova conversa</h3>
                     <button onclick="hideNewChat()" class="text-[#aebac1] hover:text-white">
                         <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
@@ -178,13 +208,77 @@
                         </svg>
                     </button>
                 </div>
-                <input type="text" id="newChatPhone" placeholder="Digite o telefone do contato"
-                    class="w-full mt-4 px-4 py-2 bg-[#2a3942] text-white rounded-lg focus:outline-none placeholder-[#8696a0]">
+                <div class="flex items-center bg-[#2a3942] rounded-lg px-4 py-2">
+                    <svg viewBox="0 0 24 24" class="w-5 h-5 text-[#8696a0]" fill="currentColor">
+                        <path d="M15.009 13.805h-.636l-.22-.219a5.184 5.184 0 0 0 1.256-3.386 5.207 5.207 0 1 0-5.207 5.208 5.183 5.183 0 0 0 3.385-1.255l.221.22v.635l4.004 3.999 1.194-1.195-3.997-4.007zm-4.808 0a3.605 3.605 0 1 1 0-7.21 3.605 3.605 0 0 1 0 7.21z"></path>
+                    </svg>
+                    <input type="text" id="searchUserInput" oninput="searchUsers()" placeholder="Buscar por nome ou ID" 
+                        class="bg-transparent text-white text-sm ml-4 w-full focus:outline-none placeholder-[#8696a0]">
+                </div>
             </div>
-            <div id="usersList" class="overflow-y-auto max-h-80 scrollbar-hide"></div>
-            <div class="p-4">
-                <button onclick="startNewChat()" class="w-full py-2 bg-[#00a884] text-white rounded-lg hover:bg-[#02906f]">
-                    Iniciar conversa
+            <div id="usersList" class="overflow-y-auto max-h-80 scrollbar-thin"></div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-[#202c33] rounded-lg w-96 overflow-hidden">
+            <div class="p-4 border-b border-[#374045]">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-white text-lg">Meu Perfil</h3>
+                    <button onclick="hideProfileModal()" class="text-[#aebac1] hover:text-white">
+                        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
+                            <path d="M19.1 17.2l-5.3-5.3 5.3-5.3-1.8-1.8-5.3 5.4-5.3-5.3-1.8 1.7 5.3 5.3-5.3 5.3L6.7 19l5.3-5.3 5.3 5.3 1.8-1.8z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 space-y-4">
+                <!-- Avatar Preview -->
+                <div class="flex justify-center">
+                    <div id="profileAvatarPreview" class="w-24 h-24 rounded-full bg-[#6b7175] flex items-center justify-center text-white text-3xl font-medium overflow-hidden">
+                        <img id="profileAvatarImg" class="w-full h-full object-cover hidden" />
+                        <span id="profileAvatarLetter"></span>
+                    </div>
+                </div>
+                
+                <!-- User ID -->
+                <div class="bg-[#2a3942] rounded-lg p-3">
+                    <p class="text-[#8696a0] text-xs mb-1">Seu ID (compartilhe para ser encontrado)</p>
+                    <div class="flex items-center justify-between">
+                        <span id="profileUserId" class="text-[#00a884] font-mono"></span>
+                        <button onclick="copyUserId()" class="text-[#8696a0] hover:text-white">
+                            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor">
+                                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Name -->
+                <div>
+                    <label class="text-[#8696a0] text-xs">Nome</label>
+                    <input type="text" id="profileName" 
+                        class="w-full mt-1 px-4 py-2 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884]">
+                </div>
+
+                <!-- Photo URL -->
+                <div>
+                    <label class="text-[#8696a0] text-xs">URL da Foto</label>
+                    <input type="url" id="profilePhoto" placeholder="https://exemplo.com/foto.jpg"
+                        class="w-full mt-1 px-4 py-2 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-500">
+                </div>
+
+                <!-- Bio -->
+                <div>
+                    <label class="text-[#8696a0] text-xs">Bio</label>
+                    <textarea id="profileBio" rows="3" placeholder="Escreva algo sobre você..."
+                        class="w-full mt-1 px-4 py-2 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-500 resize-none"></textarea>
+                </div>
+
+                <button onclick="saveProfile()" 
+                    class="w-full py-3 bg-[#00a884] text-white rounded-lg hover:bg-[#02906f] transition-colors font-medium">
+                    Salvar
                 </button>
             </div>
         </div>
@@ -204,7 +298,11 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const database = firebase.database();
+
+        // Emojis
+        const emojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😤','😠','😡','🤬','😈','👿','💀','☠️','👻','👽','🤖','🎃','👋','🤚','✋','🖐️','✌️','🤞','🤟','🤘','🤙','👌','🤌','🤏','✊','👊','🤛','🤜','👍','👎','✍️','🙌','👏','🫶','🙏','💪','🦾','🦿','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💯','✔️','❌','❗','❓','❕','❔','⚠️','🚫','⛔','🔞','⭐','🌟','✨','💥','🔥','🎉','🎊','😂','🤣','😭','💀','😎','🗿','👀','💭','🤨','😳','👍','👎','❤️','🔥','🙏','💯','🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🐍','🐢','🐊','🦖','🦕','🐟','🐠','🐳','🐬','🦈','🍎','🍊','🍌','🍉','🍇','🍓','🫐','🍔','🍟','🍕','🌭','🥪','🌮','🌯','🍝','🍜','🍣','🍤','🍗','🍖','🍰','🧁','🍩','🍪','🍫','🍿','☕','🍺','🍻','🥤','🧃','🎮','🕹️','👾','🎲','♟️','💻','🖥️','⌨️','🖱️','📱','📡','🌐','⚙️','🔧','🔨','💾','📂','📁','🧠','🤖','🚀','✈️','🚗','🏍️','🚲','🏠','🏢','🏙️','📦','📌','📎','🔑','🔒','🔓','🔊','🔇','🔔','🧨','💣','🌍'];
 
         // App State
         let currentUser = null;
@@ -212,51 +310,138 @@
         let chats = {};
         let users = {};
         let typingTimeout = null;
+        let currentChatUser = null;
 
-        // Check for existing session
-        window.onload = function() {
-            const savedUser = localStorage.getItem('whatsappUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                showMainApp();
+        // Generate unique ID
+        function generateUserId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 8; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
             }
-        };
+            return result;
+        }
 
-        // Login function
-        function login() {
-            const name = document.getElementById('userName').value.trim();
-            const phone = document.getElementById('userPhone').value.trim().replace(/\D/g, '');
-            
-            if (!name || !phone) {
-                alert('Por favor, preencha todos os campos');
+        // Auth state observer
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                loadUserData(user.uid);
+            } else {
+                document.getElementById('authScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+            }
+        });
+
+        function showError(message) {
+            const errorEl = document.getElementById('authError');
+            errorEl.textContent = message;
+            errorEl.classList.remove('hidden');
+            setTimeout(() => errorEl.classList.add('hidden'), 5000);
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+
+        async function register() {
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+
+            if (!name || !email || !password) {
+                showError('Preencha todos os campos');
                 return;
             }
 
-            currentUser = {
-                id: phone,
-                name: name,
-                phone: phone,
-                avatar: name.charAt(0).toUpperCase(),
-                lastSeen: Date.now(),
-                online: true
-            };
+            if (password.length < 6) {
+                showError('A senha deve ter no mínimo 6 caracteres');
+                return;
+            }
 
-            // Save user to Firebase
-            database.ref('users/' + phone).set(currentUser);
-            
-            // Save to localStorage
-            localStorage.setItem('whatsappUser', JSON.stringify(currentUser));
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const uniqueId = generateUserId();
+                
+                const userData = {
+                    id: userCredential.user.uid,
+                    oderId: uniqueId,
+                    oderId_lower: uniqueId.toLowerCase(),
+                    name: name,
+                    name_lower: name.toLowerCase(),
+                    email: email,
+                    photo: '',
+                    bio: 'Olá! Estou usando WhatsApp.',
+                    online: true,
+                    lastSeen: Date.now()
+                };
 
-            showMainApp();
+                await database.ref('users/' + userCredential.user.uid).set(userData);
+                
+            } catch (error) {
+                console.error(error);
+                if (error.code === 'auth/email-already-in-use') {
+                    showError('Este email já está em uso');
+                } else if (error.code === 'auth/invalid-email') {
+                    showError('Email inválido');
+                } else {
+                    showError('Erro ao criar conta: ' + error.message);
+                }
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showError('Preencha todos os campos');
+                return;
+            }
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+            } catch (error) {
+                console.error(error);
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    showError('Email ou senha incorretos');
+                } else if (error.code === 'auth/invalid-email') {
+                    showError('Email inválido');
+                } else {
+                    showError('Erro ao entrar: ' + error.message);
+                }
+            }
+        }
+
+        async function logout() {
+            if (currentUser) {
+                await database.ref('users/' + currentUser.id).update({
+                    online: false,
+                    lastSeen: Date.now()
+                });
+            }
+            auth.signOut();
+        }
+
+        async function loadUserData(uid) {
+            const snapshot = await database.ref('users/' + uid).once('value');
+            if (snapshot.exists()) {
+                currentUser = snapshot.val();
+                showMainApp();
+            }
         }
 
         function showMainApp() {
-            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('authScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('mainApp').classList.add('flex');
-            
-            document.getElementById('myAvatar').textContent = currentUser.avatar;
-            document.getElementById('myName').textContent = currentUser.name;
+
+            updateMyAvatar();
 
             // Set user online
             database.ref('users/' + currentUser.id).update({ 
@@ -273,6 +458,22 @@
             // Load data
             loadUsers();
             loadChats();
+            initEmojiPicker();
+        }
+
+        function updateMyAvatar() {
+            const imgEl = document.getElementById('myAvatarImg');
+            const letterEl = document.getElementById('myAvatarLetter');
+            
+            if (currentUser.photo) {
+                imgEl.src = currentUser.photo;
+                imgEl.classList.remove('hidden');
+                letterEl.classList.add('hidden');
+            } else {
+                imgEl.classList.add('hidden');
+                letterEl.classList.remove('hidden');
+                letterEl.textContent = currentUser.name.charAt(0).toUpperCase();
+            }
         }
 
         function loadUsers() {
@@ -282,31 +483,47 @@
             });
         }
 
-        function updateUsersList() {
+        function searchUsers() {
+            const query = document.getElementById('searchUserInput').value.toLowerCase().trim();
+            updateUsersList(query);
+        }
+
+        function updateUsersList(searchQuery = '') {
             const usersList = document.getElementById('usersList');
             usersList.innerHTML = '';
 
-            Object.values(users).forEach(user => {
-                if (user.id !== currentUser.id) {
-                    const userDiv = document.createElement('div');
-                    userDiv.className = 'flex items-center gap-3 p-3 hover:bg-[#2a3942] cursor-pointer';
-                    userDiv.onclick = () => {
-                        document.getElementById('newChatPhone').value = user.phone;
-                    };
-                    userDiv.innerHTML = `
-                        <div class="relative">
-                            <div class="w-12 h-12 rounded-full bg-[#6b7175] flex items-center justify-center text-white text-lg">
-                                ${user.avatar}
-                            </div>
-                            ${user.online ? '<div class="absolute bottom-0 right-0 w-3 h-3 bg-[#00a884] rounded-full border-2 border-[#202c33] online-dot"></div>' : ''}
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-white">${user.name}</p>
-                            <p class="text-[#8696a0] text-sm">${user.phone}</p>
-                        </div>
-                    `;
-                    usersList.appendChild(userDiv);
-                }
+            const filteredUsers = Object.values(users).filter(user => {
+                if (user.id === currentUser.id) return false;
+                if (!searchQuery) return true;
+                return user.name.toLowerCase().includes(searchQuery) || 
+                       user.oderId.toLowerCase().includes(searchQuery);
+            });
+
+            if (filteredUsers.length === 0) {
+                usersList.innerHTML = '<p class="text-[#8696a0] text-center p-4">Nenhum usuário encontrado</p>';
+                return;
+            }
+
+            filteredUsers.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'flex items-center gap-3 p-3 hover:bg-[#2a3942] cursor-pointer transition-colors';
+                userDiv.onclick = () => startChatWith(user);
+                
+                const avatarHtml = user.photo 
+                    ? `<img src="${user.photo}" class="w-12 h-12 rounded-full object-cover" />`
+                    : `<div class="w-12 h-12 rounded-full bg-[#6b7175] flex items-center justify-center text-white text-lg">${user.name.charAt(0).toUpperCase()}</div>`;
+                
+                userDiv.innerHTML = `
+                    <div class="relative">
+                        ${avatarHtml}
+                        ${user.online ? '<div class="absolute bottom-0 right-0 w-3 h-3 bg-[#00a884] rounded-full border-2 border-[#202c33] online-dot"></div>' : ''}
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-white">${user.name}</p>
+                        <p class="text-[#8696a0] text-sm">ID: ${user.oderId}</p>
+                    </div>
+                `;
+                usersList.appendChild(userDiv);
             });
         }
 
@@ -327,23 +544,30 @@
                 lastMessageTime: chat.lastMessage?.timestamp || 0
             })).sort((a, b) => b.lastMessageTime - a.lastMessageTime);
 
+            if (chatArray.length === 0) {
+                chatsList.innerHTML = '<p class="text-[#8696a0] text-center p-4">Nenhuma conversa ainda</p>';
+                return;
+            }
+
             chatArray.forEach(chat => {
                 const otherUserId = Object.keys(chat.participants).find(id => id !== currentUser.id);
-                const otherUser = users[otherUserId] || { name: otherUserId, avatar: '?' };
+                const otherUser = users[otherUserId] || { name: 'Usuário', oderId: '?' };
                 
                 const chatDiv = document.createElement('div');
-                chatDiv.className = `flex items-center gap-3 p-3 hover:bg-[#202c33] cursor-pointer ${currentChat === chat.id ? 'bg-[#2a3942]' : ''}`;
+                chatDiv.className = `flex items-center gap-3 p-3 hover:bg-[#202c33] cursor-pointer transition-colors ${currentChat === chat.id ? 'bg-[#2a3942]' : ''}`;
                 chatDiv.onclick = () => openChat(chat.id, otherUser);
                 
                 const lastMsg = chat.lastMessage || {};
                 const time = lastMsg.timestamp ? formatTime(lastMsg.timestamp) : '';
                 const unread = chat.unread?.[currentUser.id] || 0;
                 
+                const avatarHtml = otherUser.photo 
+                    ? `<img src="${otherUser.photo}" class="w-12 h-12 rounded-full object-cover" />`
+                    : `<div class="w-12 h-12 rounded-full bg-[#6b7175] flex items-center justify-center text-white text-lg">${otherUser.name?.charAt(0).toUpperCase() || '?'}</div>`;
+                
                 chatDiv.innerHTML = `
                     <div class="relative">
-                        <div class="w-12 h-12 rounded-full bg-[#6b7175] flex items-center justify-center text-white text-lg">
-                            ${otherUser.avatar}
-                        </div>
+                        ${avatarHtml}
                         ${otherUser.online ? '<div class="absolute bottom-0 right-0 w-3 h-3 bg-[#00a884] rounded-full border-2 border-[#111b21] online-dot"></div>' : ''}
                     </div>
                     <div class="flex-1 min-w-0">
@@ -353,7 +577,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <p class="text-[#8696a0] text-sm truncate">${lastMsg.text || ''}</p>
-                            ${unread > 0 ? `<span class="bg-[#00a884] text-white text-xs rounded-full px-2 py-0.5">${unread}</span>` : ''}
+                            ${unread > 0 ? `<span class="bg-[#00a884] text-white text-xs rounded-full px-2 py-0.5 ml-2">${unread}</span>` : ''}
                         </div>
                     </div>
                 `;
@@ -365,15 +589,48 @@
             return [user1, user2].sort().join('_');
         }
 
+        function startChatWith(user) {
+            const chatId = getChatId(currentUser.id, user.id);
+            
+            database.ref(`chats/${chatId}`).once('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    database.ref(`chats/${chatId}`).set({
+                        participants: {
+                            [currentUser.id]: true,
+                            [user.id]: true
+                        },
+                        createdAt: Date.now()
+                    });
+                }
+                hideNewChat();
+                openChat(chatId, user);
+            });
+        }
+
         function openChat(chatId, otherUser) {
             currentChat = chatId;
+            currentChatUser = otherUser;
             
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('chatView').classList.remove('hidden');
             document.getElementById('chatView').classList.add('flex');
             
-            document.getElementById('chatAvatar').textContent = otherUser.avatar;
+            // Update avatar
+            const avatarImg = document.getElementById('chatAvatarImg');
+            const avatarLetter = document.getElementById('chatAvatarLetter');
+            
+            if (otherUser.photo) {
+                avatarImg.src = otherUser.photo;
+                avatarImg.classList.remove('hidden');
+                avatarLetter.classList.add('hidden');
+            } else {
+                avatarImg.classList.add('hidden');
+                avatarLetter.classList.remove('hidden');
+                avatarLetter.textContent = otherUser.name?.charAt(0).toUpperCase() || '?';
+            }
+            
             document.getElementById('chatName').textContent = otherUser.name;
+            document.getElementById('chatUserId').textContent = 'ID: ' + (otherUser.oderId || '');
             
             // Update status
             updateChatStatus(otherUser);
@@ -387,7 +644,19 @@
             // Listen for typing
             listenForTyping(chatId, otherUser.id);
             
+            // Listen for user updates
+            database.ref('users/' + otherUser.id).on('value', (snapshot) => {
+                if (snapshot.exists() && currentChat === chatId) {
+                    const updatedUser = snapshot.val();
+                    currentChatUser = updatedUser;
+                    updateChatStatus(updatedUser);
+                }
+            });
+            
             renderChatsList();
+            
+            // Focus input
+            document.getElementById('messageInput').focus();
         }
 
         function updateChatStatus(otherUser) {
@@ -426,7 +695,7 @@
                     msgDiv.className = `flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`;
                     msgDiv.innerHTML = `
                         <div class="relative max-w-[65%] px-3 py-2 rounded-lg ${isMe ? 'message-out' : 'message-in'} shadow">
-                            <p class="text-[#111b21] text-sm pr-12">${msg.text}</p>
+                            <p class="text-[#111b21] text-sm pr-14 break-words">${escapeHtml(msg.text)}</p>
                             <div class="absolute bottom-1 right-2 flex items-center gap-1">
                                 <span class="text-[#667781] text-[11px]">${formatTime(msg.timestamp)}</span>
                                 ${isMe ? getCheckmarks(msg.status) : ''}
@@ -438,6 +707,12 @@
                 
                 messagesArea.scrollTop = messagesArea.scrollHeight;
             });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function getCheckmarks(status) {
@@ -477,10 +752,15 @@
             database.ref(`typing/${currentChat}/${currentUser.id}`).remove();
             
             input.value = '';
+            input.focus();
+            
+            // Close emoji picker
+            document.getElementById('emojiPicker').classList.add('hidden');
         }
 
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') {
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 sendMessage();
             }
         }
@@ -507,47 +787,65 @@
             });
         }
 
+        // Emoji Picker
+        function initEmojiPicker() {
+            const grid = document.getElementById('emojiGrid');
+            grid.innerHTML = '';
+            
+            emojis.forEach(emoji => {
+                const btn = document.createElement('button');
+                btn.className = 'emoji-btn';
+                btn.textContent = emoji;
+                btn.onclick = () => insertEmoji(emoji);
+                grid.appendChild(btn);
+            });
+        }
+
+        function toggleEmojiPicker() {
+            const picker = document.getElementById('emojiPicker');
+            picker.classList.toggle('hidden');
+        }
+
+        function insertEmoji(emoji) {
+            const input = document.getElementById('messageInput');
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const text = input.value;
+            
+            input.value = text.substring(0, start) + emoji + text.substring(end);
+            input.focus();
+            input.setSelectionRange(start + emoji.length, start + emoji.length);
+            
+            handleTyping();
+        }
+
+        // Close emoji picker when clicking outside
+        document.addEventListener('click', (e) => {
+            const picker = document.getElementById('emojiPicker');
+            const emojiBtn = e.target.closest('button');
+            
+            if (!picker.contains(e.target) && !emojiBtn?.querySelector('svg[viewBox="0 0 24 24"]')?.parentElement?.onclick?.toString().includes('toggleEmojiPicker')) {
+                if (!e.target.closest('.emoji-btn') && !e.target.closest('button[onclick="toggleEmojiPicker()"]')) {
+                    picker.classList.add('hidden');
+                }
+            }
+        });
+
         function showNewChat() {
             document.getElementById('newChatModal').classList.remove('hidden');
+            document.getElementById('searchUserInput').value = '';
+            updateUsersList();
         }
 
         function hideNewChat() {
             document.getElementById('newChatModal').classList.add('hidden');
-            document.getElementById('newChatPhone').value = '';
         }
 
-        function startNewChat() {
-            const phone = document.getElementById('newChatPhone').value.trim().replace(/\D/g, '');
-            
-            if (!phone) {
-                alert('Digite um número de telefone');
-                return;
-            }
-
-            const chatId = getChatId(currentUser.id, phone);
-            
-            // Create chat if not exists
-            database.ref(`chats/${chatId}`).once('value', (snapshot) => {
-                if (!snapshot.exists()) {
-                    database.ref(`chats/${chatId}`).set({
-                        participants: {
-                            [currentUser.id]: true,
-                            [phone]: true
-                        },
-                        createdAt: Date.now()
-                    });
-                }
-                
-                const otherUser = users[phone] || { id: phone, name: phone, avatar: phone.charAt(0) };
-                hideNewChat();
-                openChat(chatId, otherUser);
-            });
-        }
-
-        function closeChat(e) {
-            e.stopPropagation();
+        function closeChat() {
             currentChat = null;
+            currentChatUser = null;
             document.getElementById('chatView').classList.add('hidden');
+            document.getElementById('chatView').classList.remove('flex');
             document.getElementById('emptyState').classList.remove('hidden');
             renderChatsList();
         }
@@ -560,6 +858,62 @@
                 const name = item.querySelector('.text-white')?.textContent.toLowerCase() || '';
                 item.style.display = name.includes(query) ? 'flex' : 'none';
             });
+        }
+
+        // Profile Modal
+        function showProfileModal() {
+            document.getElementById('profileModal').classList.remove('hidden');
+            document.getElementById('profileName').value = currentUser.name;
+            document.getElementById('profilePhoto').value = currentUser.photo || '';
+            document.getElementById('profileBio').value = currentUser.bio || '';
+            document.getElementById('profileUserId').textContent = currentUser.oderId;
+            
+            // Update preview
+            const imgEl = document.getElementById('profileAvatarImg');
+            const letterEl = document.getElementById('profileAvatarLetter');
+            
+            if (currentUser.photo) {
+                imgEl.src = currentUser.photo;
+                imgEl.classList.remove('hidden');
+                letterEl.classList.add('hidden');
+            } else {
+                imgEl.classList.add('hidden');
+                letterEl.classList.remove('hidden');
+                letterEl.textContent = currentUser.name.charAt(0).toUpperCase();
+            }
+        }
+
+        function hideProfileModal() {
+            document.getElementById('profileModal').classList.add('hidden');
+        }
+
+        async function saveProfile() {
+            const name = document.getElementById('profileName').value.trim();
+            const photo = document.getElementById('profilePhoto').value.trim();
+            const bio = document.getElementById('profileBio').value.trim();
+
+            if (!name) {
+                alert('O nome não pode estar vazio');
+                return;
+            }
+
+            const updates = {
+                name: name,
+                name_lower: name.toLowerCase(),
+                photo: photo,
+                bio: bio
+            };
+
+            await database.ref('users/' + currentUser.id).update(updates);
+            
+            currentUser = { ...currentUser, ...updates };
+            updateMyAvatar();
+            hideProfileModal();
+        }
+
+        function copyUserId() {
+            navigator.clipboard.writeText(currentUser.oderId);
+            alert('ID copiado: ' + currentUser.oderId);
         }
 
         // Utility functions
@@ -587,14 +941,6 @@
             if (diff < 3600000) return `há ${Math.floor(diff / 60000)} min`;
             if (date.toDateString() === now.toDateString()) return `hoje às ${formatTime(timestamp)}`;
             return `${formatDate(timestamp)} às ${formatTime(timestamp)}`;
-        }
-
-        function toggleMenu() {
-            // Menu toggle logic
-        }
-
-        function showContactInfo() {
-            // Contact info modal
         }
     </script>
 </body>
