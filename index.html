@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="https://i.postimg.cc/mD36p6p9/ghost-icon.png">
+    <link rel="icon" type="image/png" href="favicon.png">
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GhostChat Pro - Ultimate UI</title>
@@ -168,7 +168,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDocs, where, limit, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDocs, where, limit, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC0DhQ-EUs3Azqn7_tbB-W3S9ko0DaUWls",
@@ -189,10 +189,24 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const gid = localStorage.getItem('ghost_id') || Math.floor(1000 + Math.random() * 9000).toString();
-                localStorage.setItem('ghost_id', gid);
-                myData = { uid: user.uid, ghostId: gid, name: localStorage.getItem('ghost_name') || `Ghost#${gid}`, pic: localStorage.getItem('ghost_pic') || `https://api.dicebear.com/7.x/bottts/svg?seed=${gid}` };
-                await setDoc(doc(db, "users", user.uid), myData, { merge: true });
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                
+                if (userSnap.exists()) {
+                    myData = userSnap.data();
+                    localStorage.setItem('ghost_id', myData.ghostId);
+                } else {
+                    const gid = Math.floor(1000 + Math.random() * 9000).toString();
+                    myData = { 
+                        uid: user.uid, 
+                        ghostId: gid, 
+                        name: localStorage.getItem('ghost_name') || `Ghost#${gid}`, 
+                        pic: localStorage.getItem('ghost_pic') || `https://api.dicebear.com/7.x/bottts/svg?seed=${gid}` 
+                    };
+                    await setDoc(userRef, myData);
+                    localStorage.setItem('ghost_id', gid);
+                }
+
                 document.getElementById('my-pfp').src = myData.pic;
                 document.getElementById('display-id').innerText = myData.ghostId;
                 document.getElementById('in-name').value = myData.name;
@@ -301,9 +315,9 @@
                 await deleteDoc(doc(db, "messages", msgId));
             } else {
                 const msgRef = doc(db, "messages", msgId);
-                const snap = await getDocs(query(collection(db, "messages"), where("__name__", "==", msgId)));
-                if (!snap.empty) {
-                    let deletedFor = snap.docs[0].data().deletedFor || [];
+                const msgSnap = await getDoc(msgRef);
+                if (msgSnap.exists()) {
+                    let deletedFor = msgSnap.data().deletedFor || [];
                     if (!deletedFor.includes(myData.uid)) {
                         deletedFor.push(myData.uid);
                         await updateDoc(msgRef, { deletedFor: deletedFor });
