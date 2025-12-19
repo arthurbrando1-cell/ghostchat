@@ -27,30 +27,31 @@
 
         /* Chat Area */
         .main-chat { flex: 1; display: flex; flex-direction: column; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: var(--bg-chat); background-blend-mode: overlay; }
-        .chat-header { background: var(--bg-panel); padding: 10px 16px; display: flex; align-items: center; height: 60px; }
+        .chat-header { background: var(--bg-panel); padding: 10px 16px; display: flex; align-items: center; height: 60px; visibility: hidden; }
         
         #messages-container { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 10px; }
-        .msg-wrapper { display: flex; align-items: flex-end; gap: 8px; max-width: 75%; }
+        .msg-wrapper { display: flex; align-items: flex-end; gap: 8px; max-width: 85%; }
         .msg-wrapper.own { align-self: flex-end; flex-direction: row-reverse; }
         .msg-wrapper.other { align-self: flex-start; }
-        .msg-avatar { width: 28px; height: 28px; border-radius: 50%; }
+        .msg-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
         
         .msg-bubble { padding: 8px 12px; border-radius: 8px; font-size: 14px; position: relative; word-break: break-word; }
         .own .msg-bubble { background: var(--msg-own); border-bottom-right-radius: 2px; }
         .other .msg-bubble { background: var(--msg-other); border-bottom-left-radius: 2px; }
-        .msg-time { font-size: 10px; color: rgba(255,255,255,0.5); margin-left: 8px; }
+        .msg-time { font-size: 10px; color: rgba(255,255,255,0.5); margin-left: 8px; display: inline-block; margin-top: 4px; }
 
         /* Input Area */
         .input-bar { background: var(--bg-panel); padding: 10px 16px; display: flex; align-items: center; gap: 12px; position: relative; }
         .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px 16px; border-radius: 8px; color: white; outline: none; }
-        .icon-btn { cursor: pointer; color: var(--text-dim); font-size: 20px; user-select: none; }
+        .icon-btn { cursor: pointer; color: var(--text-dim); font-size: 22px; user-select: none; }
 
         /* Emoji Grid */
-        #emoji-picker { position: absolute; bottom: 65px; left: 15px; background: var(--bg-panel); padding: 10px; border-radius: 8px; display: none; grid-template-columns: repeat(8, 1fr); gap: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 100; max-height: 200px; overflow-y: auto; }
-        .emoji-item { cursor: pointer; font-size: 20px; padding: 5px; }
+        #emoji-picker { position: absolute; bottom: 65px; left: 15px; background: var(--bg-panel); padding: 10px; border-radius: 8px; display: none; grid-template-columns: repeat(8, 1fr); gap: 8px; box-shadow: 0 5px 25px rgba(0,0,0,0.6); z-index: 100; max-height: 250px; overflow-y: auto; width: 320px; }
+        .emoji-item { cursor: pointer; font-size: 22px; padding: 5px; text-align: center; }
+        .emoji-item:hover { background: #3b4a54; border-radius: 5px; }
 
         /* Modais */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: var(--bg-panel); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; }
         .modal-content input, .modal-content textarea { width: 100%; padding: 12px; margin: 8px 0; background: #2a3942; border: none; color: white; border-radius: 5px; }
         .btn-save { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
@@ -61,8 +62,9 @@
 <body>
 
     <div id="login-screen" style="position:fixed; inset:0; background:var(--bg-main); z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <div style="font-size: 50px; margin-bottom: 20px;">👻</div>
-        <button onclick="handleLogin()" style="background:var(--accent); color:white; border:none; padding:15px 40px; border-radius:30px; cursor:pointer; font-weight:bold;">Entrar no GhostChat</button>
+        <div style="font-size: 60px; margin-bottom: 20px;">👻</div>
+        <h1 style="margin-bottom: 20px;">GhostChat Pro</h1>
+        <button onclick="handleLogin()" style="background:var(--accent); color:white; border:none; padding:15px 50px; border-radius:30px; cursor:pointer; font-weight:bold; font-size: 16px;">Entrar Anonimamente</button>
     </div>
 
     <div id="app" class="hidden">
@@ -70,26 +72,26 @@
             <div class="sidebar-header">
                 <img src="" id="user-header-img" class="avatar" onclick="openModal('modal-profile')">
                 <div style="display:flex; gap: 20px;">
-                    <span class="icon-btn" onclick="openModal('modal-add')">＋</span>
-                    <span class="icon-btn" onclick="location.reload()">⟳</span>
+                    <span class="icon-btn" onclick="openModal('modal-add')" title="Novo Chat">＋</span>
+                    <span class="icon-btn" onclick="location.reload()" title="Recarregar">⟳</span>
                 </div>
             </div>
             <div class="chat-list" id="chat-list-ui"></div>
         </div>
 
         <div class="main-chat">
-            <div class="chat-header" id="chat-header-info" style="visibility: hidden;">
+            <div class="chat-header" id="chat-header-main">
                 <img src="" id="active-chat-img" class="avatar" style="margin-right: 15px;">
                 <div>
-                    <h4 id="active-chat-name">Nome</h4>
+                    <h4 id="active-chat-name">Selecione um contato</h4>
                     <p id="active-chat-bio" style="font-size: 12px; color: var(--text-dim)"></p>
                 </div>
             </div>
 
             <div id="messages-container">
-                <div style="margin: auto; text-align: center; color: var(--text-dim);">
-                    <p>👻 GhostChat Pro</p>
-                    <p>Busque um ID para começar a conversar.</p>
+                <div id="empty-state" style="margin: auto; text-align: center; color: var(--text-dim);">
+                    <p style="font-size: 40px;">👻</p>
+                    <p>Busque um ID de amigo para começar.</p>
                 </div>
             </div>
 
@@ -106,23 +108,24 @@
     <div id="modal-profile" class="modal">
         <div class="modal-content">
             <h3 style="margin-bottom: 10px;">Meu Perfil</h3>
-            <p id="display-id" style="color: var(--accent); font-weight: bold; margin-bottom: 15px; font-size: 14px;"></p>
+            <p id="display-id" style="color: var(--accent); font-weight: bold; margin-bottom: 15px; font-size: 14px; background: #111b21; padding: 5px; border-radius: 4px; text-align: center;"></p>
             <label style="font-size: 11px; color: var(--text-dim);">NOME</label>
             <input type="text" id="input-name">
             <label style="font-size: 11px; color: var(--text-dim);">BIO</label>
             <textarea id="input-bio" rows="2"></textarea>
-            <label style="font-size: 11px; color: var(--text-dim);">FOTO (URL)</label>
+            <label style="font-size: 11px; color: var(--text-dim);">URL DA FOTO</label>
             <input type="text" id="input-pic">
-            <button class="btn-save" onclick="saveProfile()">Salvar</button>
-            <button onclick="closeModals()" style="background:none; border:none; color:white; width:100%; margin-top:10px; cursor:pointer;">Voltar</button>
+            <button class="btn-save" onclick="saveProfile()">Salvar Alterações</button>
+            <button onclick="closeModals()" style="background:none; border:none; color:white; width:100%; margin-top:10px; cursor:pointer;">Fechar</button>
         </div>
     </div>
 
     <div id="modal-add" class="modal">
         <div class="modal-content">
-            <h3>Novo Contato</h3>
-            <input type="text" id="search-id" placeholder="Digite o ID (Ex: 1234)">
-            <button class="btn-save" onclick="findUser()">Conversar</button>
+            <h3>Novo Fantasma</h3>
+            <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 10px;">Informe o ID do seu amigo para iniciar o chat privado.</p>
+            <input type="text" id="search-id" placeholder="Ex: 4921">
+            <button class="btn-save" onclick="findUser()">Iniciar Conversa</button>
             <button onclick="closeModals()" style="background:none; border:none; color:white; width:100%; margin-top:10px; cursor:pointer;">Cancelar</button>
         </div>
     </div>
@@ -150,14 +153,15 @@
         let activeTarget = null;
         let unsubMsg = null;
 
-        // Emoji List
-        const emojiList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😤','😠','😡','🤬','😈','👿','💀','☠️','👻','👽','🤖','🎃','👋','👍','👎','❤️','🔥','💯','✔️','❌','🎮','🚀'];
+        // Lista de Emojis Completa
+        const emojis = ["😀","😃","😄","😁","😆","😅","😂","🤣","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚","😋","😛","😜","🤪","😝","🤑","🤗","🤭","🤫","🤔","😐","😑","😶","😏","😒","🙄","😬","🤥","😌","😔","😪","🤤","😴","😷","🤒","🤕","🤢","🤮","🤧","😵","🤯","🤠","🥳","😎","🤓","🧐","😕","😟","🙁","☹️","😮","😯","😲","😳","🥺","😦","😧","😨","😰","😥","😢","😭","😤","😠","😡","🤬","😈","👿","💀","☠️","👻","👽","🤖","🎃","👋","🤚","✋","🖐️","✌️","🤞","🤟","🤘","🤙","👌","🤌","🤏","✊","👊","🤛","🤜","👍","👎","✍️","🙌","👏","🫶","🙏","💪","🦾","🦿","❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💯","✔️","❌","❗","❓","❕","❔","⚠️","🚫","⛔","🔞","⭐","🌟","✨","💥","🔥","🎉","🎊","🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🐤","🦆","🦅","🐍","🐢","🐊","🦖","🦕","🐟","🐠","🐳","🐬","🦈","🍎","🍊","🍌","🍉","🍇","🍓","🫐","🍔","🍟","🍕","🌭","🥪","🌮","🌯","🍝","🍜","🍣","🍤","🍗","🍖","🍰","🧁","🍩","🍪","🍫","🍿","☕","🍺","🍻","🥤","🧃","🎮","🕹️","👾","🎲","♟️","💻","🖥️","⌨️","🖱️","📱","📡","🌐","⚙️","🔧","🔨","💾","📂","📁","🧠","🤖","🚀","✈️","🚗","🏍","🚲","🏠","🏢","🏙️","📦","📌","📎","🔑","🔒","🔓","🔊","🔇","🔔","🧨","💣","🌍"];
+        
         const picker = document.getElementById('emoji-picker');
-        emojiList.forEach(e => {
+        emojis.forEach(e => {
             const el = document.createElement('span');
             el.className = 'emoji-item';
             el.innerText = e;
-            el.onclick = () => { document.getElementById('msg-input').value += e; picker.style.display = 'none'; };
+            el.onclick = () => { document.getElementById('msg-input').value += e; picker.style.display = 'none'; document.getElementById('msg-input').focus(); };
             picker.appendChild(el);
         });
         window.toggleEmoji = () => picker.style.display = picker.style.display === 'grid' ? 'none' : 'grid';
@@ -174,7 +178,7 @@
                     uid: user.uid,
                     ghostId: ghostId,
                     name: localStorage.getItem('ghost_name') || `Ghost#${ghostId}`,
-                    bio: localStorage.getItem('ghost_bio') || "Invisível no GhostChat.",
+                    bio: localStorage.getItem('ghost_bio') || "👻 Invisível no GhostChat",
                     pic: localStorage.getItem('ghost_pic') || `https://api.dicebear.com/7.x/bottts/svg?seed=${ghostId}`
                 };
 
@@ -182,13 +186,13 @@
                 updateUI();
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
-                listenToMyChats();
+                loadChatHistory();
             }
         });
 
         function updateUI() {
             document.getElementById('user-header-img').src = myData.pic;
-            document.getElementById('display-id').innerText = `SEU ID: ${myData.ghostId}`;
+            document.getElementById('display-id').innerText = `ID DO SEU FANTASMA: ${myData.ghostId}`;
             document.getElementById('input-name').value = myData.name;
             document.getElementById('input-bio').value = myData.bio;
             document.getElementById('input-pic').value = myData.pic;
@@ -208,36 +212,31 @@
             }
         };
 
-        // Escutar mensagens recebidas para criar lista de chats
-        function listenToMyChats() {
-            const q = query(collection(db, "messages"), where("participants", "array-contains", myData.uid), orderBy("timestamp", "desc"));
+        // Carregar lista de conversas ativas
+        function loadChatHistory() {
+            const q = query(collection(db, "messages"), where("participants", "array-contains", myData.uid));
             onSnapshot(q, async (snap) => {
-                const chatListUI = document.getElementById('chat-list-ui');
-                const uniqueUids = new Set();
-                
+                const sidebar = document.getElementById('chat-list-ui');
+                const uniqueUsers = new Set();
                 snap.forEach(d => {
                     const m = d.data();
-                    const otherUid = m.participants.find(id => id !== myData.uid);
-                    if(otherUid) uniqueUids.add(otherUid);
+                    const other = m.participants.find(p => p !== myData.uid);
+                    if(other) uniqueUsers.add(other);
                 });
 
-                chatListUI.innerHTML = '';
-                for (let uid of uniqueUids) {
-                    const userDoc = await getDocs(query(collection(db, "users"), where("uid", "==", uid)));
-                    if(!userDoc.empty) {
-                        const target = userDoc.docs[0].data();
-                        renderChatItem(target);
+                sidebar.innerHTML = '';
+                for(let uid of uniqueUsers) {
+                    const uSnap = await getDocs(query(collection(db, "users"), where("uid", "==", uid)));
+                    if(!uSnap.empty) {
+                        const u = uSnap.docs[0].data();
+                        const div = document.createElement('div');
+                        div.className = 'chat-item';
+                        div.innerHTML = `<img src="${u.pic}"> <div><b>${u.name}</b><br><small style="color:var(--text-dim)">${u.bio}</small></div>`;
+                        div.onclick = () => startChat(u);
+                        sidebar.appendChild(div);
                     }
                 }
             });
-        }
-
-        function renderChatItem(target) {
-            const item = document.createElement('div');
-            item.className = 'chat-item';
-            item.innerHTML = `<img src="${target.pic}"> <div><b>${target.name}</b><br><small style="color:var(--text-dim)">${target.bio}</small></div>`;
-            item.onclick = () => startChat(target);
-            document.getElementById('chat-list-ui').appendChild(item);
         }
 
         window.findUser = async () => {
@@ -245,33 +244,35 @@
             const snap = await getDocs(query(collection(db, "users"), where("ghostId", "==", id), limit(1)));
             if(!snap.empty) {
                 const target = snap.docs[0].data();
-                if(target.uid === myData.uid) return alert("É você!");
+                if(target.uid === myData.uid) return alert("Você não pode falar com você mesmo!");
                 startChat(target);
                 closeModals();
-            } else alert("Não encontrado.");
+            } else alert("ID Fantasma não encontrado!");
         };
 
         function startChat(target) {
             activeTarget = target;
             activeChatId = [myData.uid, target.uid].sort().join('_');
             
-            document.getElementById('chat-header-info').style.visibility = 'visible';
+            document.getElementById('chat-header-main').style.visibility = 'visible';
             document.getElementById('active-chat-name').innerText = target.name;
             document.getElementById('active-chat-bio').innerText = target.bio;
             document.getElementById('active-chat-img').src = target.pic;
+            document.getElementById('empty-state').style.display = 'none';
 
             if(unsubMsg) unsubMsg();
             const q = query(collection(db, "messages"), where("chatId", "==", activeChatId), orderBy("timestamp", "asc"));
             unsubMsg = onSnapshot(q, (snap) => {
                 const container = document.getElementById('messages-container');
                 container.innerHTML = '';
-                snap.forEach(doc => {
-                    const m = doc.data();
+                snap.forEach(d => {
+                    const m = d.data();
                     const isOwn = m.senderId === myData.uid;
                     const wrap = document.createElement('div');
                     wrap.className = `msg-wrapper ${isOwn ? 'own' : 'other'}`;
+                    const time = m.timestamp ? new Date(m.timestamp.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
                     wrap.innerHTML = `<img src="${isOwn ? myData.pic : target.pic}" class="msg-avatar">
-                                      <div class="msg-bubble">${m.text}<span class="msg-time">${m.timestamp ? new Date(m.timestamp.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : ''}</span></div>`;
+                                      <div class="msg-bubble">${m.text}<br><span class="msg-time">${time}</span></div>`;
                     container.appendChild(wrap);
                 });
                 container.scrollTop = container.scrollHeight;
@@ -281,13 +282,14 @@
         document.getElementById('chat-form').onsubmit = async (e) => {
             e.preventDefault();
             const input = document.getElementById('msg-input');
-            if(input.value && activeChatId) {
-                const txt = input.value; input.value = '';
+            const val = input.value.trim();
+            if(val && activeChatId) {
+                input.value = '';
                 await addDoc(collection(db, "messages"), {
                     chatId: activeChatId,
                     participants: [myData.uid, activeTarget.uid],
                     senderId: myData.uid,
-                    text: txt,
+                    text: val,
                     timestamp: serverTimestamp()
                 });
             }
