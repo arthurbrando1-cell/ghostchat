@@ -17,10 +17,12 @@
         .scrollbar-thin::-webkit-scrollbar-thumb { background: #374045; border-radius: 3px; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        .message-out { background-color: #d9fdd3; }
-        .message-in { background-color: #ffffff; }
-        .message-out::after { content: ''; position: absolute; right: -8px; top: 0; border-width: 8px; border-style: solid; border-color: #d9fdd3 transparent transparent transparent; }
-        .message-in::after { content: ''; position: absolute; left: -8px; top: 0; border-width: 8px; border-style: solid; border-color: #ffffff transparent transparent transparent; }
+        .message-out { background-color: #005c4b; color: #e9edef; }
+        .message-in { background-color: #202c33; color: #e9edef; }
+        /* Ajuste de cores das mensagens para o tema escuro */
+        .message-out::after { content: ''; position: absolute; right: -8px; top: 0; border-width: 8px; border-style: solid; border-color: #005c4b transparent transparent transparent; }
+        .message-in::after { content: ''; position: absolute; left: -8px; top: 0; border-width: 8px; border-style: solid; border-color: #202c33 transparent transparent transparent; }
+        
         .typing-indicator span { animation: blink 1.4s infinite both; }
         .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
         .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
@@ -33,7 +35,6 @@
     </style>
 </head>
 <body class="bg-[#111b21] h-screen overflow-hidden">
-    <!-- Auth Screen -->
     <div id="authScreen" class="flex items-center justify-center h-screen">
         <div class="bg-[#202c33] p-8 rounded-lg shadow-2xl w-96">
             <div class="flex items-center justify-center mb-6">
@@ -44,7 +45,6 @@
             </div>
             <h1 class="text-2xl font-light text-white text-center mb-6">WhatsApp Web</h1>
             
-            <!-- Login Form -->
             <div id="loginForm" class="space-y-4">
                 <input type="email" id="loginEmail" placeholder="Email" 
                     class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
@@ -59,7 +59,6 @@
                 </p>
             </div>
 
-            <!-- Register Form -->
             <div id="registerForm" class="space-y-4 hidden">
                 <input type="text" id="registerName" placeholder="Nome de usuário" 
                     class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
@@ -80,11 +79,8 @@
         </div>
     </div>
 
-    <!-- Main App -->
     <div id="mainApp" class="hidden h-screen flex">
-        <!-- Left Panel - Chats List -->
         <div id="leftPanel" class="w-[30%] min-w-[300px] bg-[#111b21] flex flex-col border-r border-[#222d34]">
-            <!-- Header -->
             <div class="h-14 bg-[#202c33] flex items-center justify-between px-4">
                 <div class="flex items-center gap-3 cursor-pointer" onclick="showProfileModal()">
                     <div id="myAvatarHeader" class="w-10 h-10 rounded-full bg-[#6b7175] flex items-center justify-center text-white font-medium overflow-hidden">
@@ -107,25 +103,21 @@
                 </div>
             </div>
 
-            <!-- Search -->
             <div class="p-2 bg-[#111b21]">
                 <div class="flex items-center bg-[#202c33] rounded-lg px-4 py-2">
                     <svg viewBox="0 0 24 24" class="w-5 h-5 text-[#8696a0]" fill="currentColor">
                         <path d="M15.009 13.805h-.636l-.22-.219a5.184 5.184 0 0 0 1.256-3.386 5.207 5.207 0 1 0-5.207 5.208 5.183 5.183 0 0 0 3.385-1.255l.221.22v.635l4.004 3.999 1.194-1.195-3.997-4.007zm-4.808 0a3.605 3.605 0 1 1 0-7.21 3.605 3.605 0 0 1 0 7.21z"></path>
                     </svg>
-                    <input type="text" id="searchInput" oninput="searchChats()" placeholder="Pesquisar conversas" 
+                    <input type="text" id="searchInput" oninput="renderChatsList()" placeholder="Pesquisar conversas" 
                         class="bg-transparent text-white text-sm ml-4 w-full focus:outline-none placeholder-[#8696a0]">
                 </div>
             </div>
 
-            <!-- Chats List -->
             <div id="chatsList" class="flex-1 overflow-y-auto scrollbar-thin"></div>
         </div>
 
-        <!-- Right Panel - Chat Area -->
-        <div class="flex-1 flex flex-col">
-            <!-- Empty State -->
-            <div id="emptyState" class="flex-1 flex flex-col items-center justify-center bg-[#222e35]">
+        <div class="flex-1 flex flex-col relative bg-[#222e35]">
+            <div id="emptyState" class="absolute inset-0 z-0 flex flex-col items-center justify-center bg-[#222e35]">
                 <div class="text-center">
                     <div class="w-[250px] h-[250px] mx-auto mb-8 rounded-full bg-[#364147] flex items-center justify-center">
                         <svg class="w-32 h-32 text-[#8696a0]" viewBox="0 0 303 172" fill="currentColor">
@@ -137,9 +129,7 @@
                 </div>
             </div>
 
-            <!-- Chat View (Hidden by default) -->
-            <div id="chatView" class="hidden flex-1 flex flex-col">
-                <!-- Chat Header -->
+            <div id="chatView" class="hidden flex-1 flex flex-col z-10 h-full">
                 <div class="h-14 bg-[#202c33] flex items-center justify-between px-4">
                     <div class="flex items-center gap-3 cursor-pointer">
                         <button class="md:hidden mr-2 text-[#aebac1]" onclick="closeChat()">
@@ -161,17 +151,13 @@
                     </div>
                 </div>
 
-                <!-- Messages Area -->
-                <div id="messagesArea" class="flex-1 overflow-y-auto chat-bg p-4 scrollbar-thin"></div>
+                <div id="messagesArea" class="flex-1 overflow-y-auto chat-bg p-4 scrollbar-thin flex flex-col space-y-2"></div>
 
-                <!-- Typing Indicator -->
                 <div id="typingIndicator" class="hidden bg-[#202c33] px-4 py-2">
                     <span class="text-[#00a884] text-sm">digitando<span class="typing-indicator"><span>.</span><span>.</span><span>.</span></span></span>
                 </div>
 
-                <!-- Message Input -->
                 <div class="bg-[#202c33] px-4 py-3 flex items-center gap-3 relative">
-                    <!-- Emoji Picker -->
                     <div id="emojiPicker" class="hidden absolute bottom-16 left-4 bg-[#202c33] rounded-lg p-3 shadow-xl border border-[#374045] w-80 z-50">
                         <div class="emoji-grid scrollbar-thin" id="emojiGrid"></div>
                     </div>
@@ -196,7 +182,6 @@
         </div>
     </div>
 
-    <!-- New Chat Modal -->
     <div id="newChatModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-[#202c33] rounded-lg w-96 max-h-[80vh] overflow-hidden">
             <div class="p-4 border-b border-[#374045]">
@@ -220,7 +205,6 @@
         </div>
     </div>
 
-    <!-- Profile Modal -->
     <div id="profileModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-[#202c33] rounded-lg w-96 overflow-hidden">
             <div class="p-4 border-b border-[#374045]">
@@ -234,7 +218,6 @@
                 </div>
             </div>
             <div class="p-6 space-y-4">
-                <!-- Avatar Preview -->
                 <div class="flex justify-center">
                     <div id="profileAvatarPreview" class="w-24 h-24 rounded-full bg-[#6b7175] flex items-center justify-center text-white text-3xl font-medium overflow-hidden">
                         <img id="profileAvatarImg" class="w-full h-full object-cover hidden" />
@@ -242,7 +225,6 @@
                     </div>
                 </div>
                 
-                <!-- User ID -->
                 <div class="bg-[#2a3942] rounded-lg p-3">
                     <p class="text-[#8696a0] text-xs mb-1">Seu ID (compartilhe para ser encontrado)</p>
                     <div class="flex items-center justify-between">
@@ -255,21 +237,18 @@
                     </div>
                 </div>
 
-                <!-- Name -->
                 <div>
                     <label class="text-[#8696a0] text-xs">Nome</label>
                     <input type="text" id="profileName" 
                         class="w-full mt-1 px-4 py-2 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884]">
                 </div>
 
-                <!-- Photo URL -->
                 <div>
                     <label class="text-[#8696a0] text-xs">URL da Foto</label>
                     <input type="url" id="profilePhoto" placeholder="https://exemplo.com/foto.jpg"
                         class="w-full mt-1 px-4 py-2 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-500">
                 </div>
 
-                <!-- Bio -->
                 <div>
                     <label class="text-[#8696a0] text-xs">Bio</label>
                     <textarea id="profileBio" rows="3" placeholder="Escreva algo sobre você..."
@@ -306,11 +285,11 @@
 
         // App State
         let currentUser = null;
-        let currentChat = null;
+        let currentChatId = null;
         let chats = {};
         let users = {};
         let typingTimeout = null;
-        let currentChatUser = null;
+        let messagesListener = null;
 
         // Generate unique ID
         function generateUserId() {
@@ -426,6 +405,7 @@
                 });
             }
             auth.signOut();
+            location.reload();
         }
 
         async function loadUserData(uid) {
@@ -452,7 +432,7 @@
             // Handle disconnect
             database.ref('users/' + currentUser.id).onDisconnect().update({
                 online: false,
-                lastSeen: Date.now()
+                lastSeen: firebase.database.ServerValue.TIMESTAMP
             });
 
             // Load data
@@ -479,6 +459,16 @@
         function loadUsers() {
             database.ref('users').on('value', (snapshot) => {
                 users = snapshot.val() || {};
+                // Se o chat estiver aberto, atualizar status do usuário atual
+                if (currentChatId) {
+                    const chat = chats[currentChatId];
+                    if (chat) {
+                        const otherUserId = Object.keys(chat.participants).find(id => id !== currentUser.id);
+                        if (otherUserId && users[otherUserId]) {
+                            updateChatHeader(users[otherUserId]);
+                        }
+                    }
+                }
                 updateUsersList();
             });
         }
@@ -537,338 +527,242 @@
         function renderChatsList() {
             const chatsList = document.getElementById('chatsList');
             chatsList.innerHTML = '';
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
 
-            const chatArray = Object.entries(chats).map(([id, chat]) => ({
-                id,
-                ...chat,
-                lastMessageTime: chat.lastMessage?.timestamp || 0
-            })).sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+            const chatArray = Object.entries(chats).map(([id, chat]) => {
+                // Find other participant
+                const otherUserId = Object.keys(chat.participants).find(pid => pid !== currentUser.id);
+                const otherUser = users[otherUserId];
+                return {
+                    id,
+                    ...chat,
+                    otherUser,
+                    lastMessageTime: chat.lastMessage ? chat.lastMessage.timestamp : 0
+                };
+            }).filter(item => {
+                if(!item.otherUser) return false;
+                if(!query) return true;
+                return item.otherUser.name.toLowerCase().includes(query);
+            }).sort((a, b) => b.lastMessageTime - a.lastMessageTime);
 
             if (chatArray.length === 0) {
-                chatsList.innerHTML = '<p class="text-[#8696a0] text-center p-4">Nenhuma conversa ainda</p>';
+                chatsList.innerHTML = '<p class="text-[#8696a0] text-center p-4">Nenhuma conversa encontrada</p>';
                 return;
             }
 
             chatArray.forEach(chat => {
-                const otherUserId = Object.keys(chat.participants).find(id => id !== currentUser.id);
-                const otherUser = users[otherUserId] || { name: 'Usuário', oderId: '?' };
-                
-                const chatDiv = document.createElement('div');
-                chatDiv.className = `flex items-center gap-3 p-3 hover:bg-[#202c33] cursor-pointer transition-colors ${currentChat === chat.id ? 'bg-[#2a3942]' : ''}`;
-                chatDiv.onclick = () => openChat(chat.id, otherUser);
-                
-                const lastMsg = chat.lastMessage || {};
-                const time = lastMsg.timestamp ? formatTime(lastMsg.timestamp) : '';
-                const unread = chat.unread?.[currentUser.id] || 0;
-                
-                const avatarHtml = otherUser.photo 
-                    ? `<img src="${otherUser.photo}" class="w-12 h-12 rounded-full object-cover" />`
-                    : `<div class="w-12 h-12 rounded-full bg-[#6b7175] flex items-center justify-center text-white text-lg">${otherUser.name?.charAt(0).toUpperCase() || '?'}</div>`;
-                
-                chatDiv.innerHTML = `
+                const isActive = currentChatId === chat.id;
+                const div = document.createElement('div');
+                div.className = `flex items-center gap-3 p-3 cursor-pointer transition-colors border-b border-[#222d34] hover:bg-[#202c33] ${isActive ? 'bg-[#2a3942]' : ''}`;
+                div.onclick = () => openChat(chat.id, chat.otherUser);
+
+                const timeStr = chat.lastMessage ? new Date(chat.lastMessage.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                const lastMsg = chat.lastMessage ? chat.lastMessage.text : 'Iniciar conversa';
+
+                const avatarHtml = chat.otherUser.photo 
+                    ? `<img src="${chat.otherUser.photo}" class="w-12 h-12 rounded-full object-cover" />`
+                    : `<div class="w-12 h-12 rounded-full bg-[#6b7175] flex items-center justify-center text-white text-lg">${chat.otherUser.name.charAt(0).toUpperCase()}</div>`;
+
+                div.innerHTML = `
                     <div class="relative">
                         ${avatarHtml}
-                        ${otherUser.online ? '<div class="absolute bottom-0 right-0 w-3 h-3 bg-[#00a884] rounded-full border-2 border-[#111b21] online-dot"></div>' : ''}
+                        ${chat.otherUser.online ? '<div class="absolute bottom-0 right-0 w-3 h-3 bg-[#00a884] rounded-full border-2 border-[#202c33] online-dot"></div>' : ''}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="flex justify-between">
-                            <span class="text-white font-medium truncate">${otherUser.name}</span>
-                            <span class="text-[#8696a0] text-xs">${time}</span>
+                        <div class="flex justify-between items-baseline">
+                            <h4 class="text-white font-medium truncate">${chat.otherUser.name}</h4>
+                            <span class="text-[#8696a0] text-xs">${timeStr}</span>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <p class="text-[#8696a0] text-sm truncate">${lastMsg.text || ''}</p>
-                            ${unread > 0 ? `<span class="bg-[#00a884] text-white text-xs rounded-full px-2 py-0.5 ml-2">${unread}</span>` : ''}
-                        </div>
+                        <p class="text-[#8696a0] text-sm truncate w-full">${lastMsg}</p>
                     </div>
                 `;
-                chatsList.appendChild(chatDiv);
+                chatsList.appendChild(div);
             });
-        }
-
-        function getChatId(user1, user2) {
-            return [user1, user2].sort().join('_');
         }
 
         function startChatWith(user) {
-            const chatId = getChatId(currentUser.id, user.id);
+            hideNewChat();
             
-            database.ref(`chats/${chatId}`).once('value', (snapshot) => {
-                if (!snapshot.exists()) {
-                    database.ref(`chats/${chatId}`).set({
-                        participants: {
-                            [currentUser.id]: true,
-                            [user.id]: true
-                        },
-                        createdAt: Date.now()
-                    });
-                }
-                hideNewChat();
+            // Create a consistent ID (sort user IDs so it's always the same for same pair)
+            const chatParticipants = [currentUser.id, user.id].sort();
+            const chatId = chatParticipants.join('_');
+
+            // Check if chat exists locally first
+            if (chats[chatId]) {
                 openChat(chatId, user);
-            });
+            } else {
+                // Initialize chat in DB
+                const newChatData = {
+                    participants: {
+                        [currentUser.id]: true,
+                        [user.id]: true
+                    },
+                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                };
+                database.ref('chats/' + chatId).update(newChatData).then(() => {
+                    openChat(chatId, user);
+                });
+            }
         }
 
-        function openChat(chatId, otherUser) {
-            currentChat = chatId;
-            currentChatUser = otherUser;
+        function openChat(chatId, user) {
+            currentChatId = chatId;
             
+            // UI Toggle
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('chatView').classList.remove('hidden');
             document.getElementById('chatView').classList.add('flex');
+
+            // Update Header
+            updateChatHeader(user);
             
-            // Update avatar
-            const avatarImg = document.getElementById('chatAvatarImg');
-            const avatarLetter = document.getElementById('chatAvatarLetter');
-            
-            if (otherUser.photo) {
-                avatarImg.src = otherUser.photo;
-                avatarImg.classList.remove('hidden');
-                avatarLetter.classList.add('hidden');
-            } else {
-                avatarImg.classList.add('hidden');
-                avatarLetter.classList.remove('hidden');
-                avatarLetter.textContent = otherUser.name?.charAt(0).toUpperCase() || '?';
-            }
-            
-            document.getElementById('chatName').textContent = otherUser.name;
-            document.getElementById('chatUserId').textContent = 'ID: ' + (otherUser.oderId || '');
-            
-            // Update status
-            updateChatStatus(otherUser);
-            
-            // Mark as read
-            database.ref(`chats/${chatId}/unread/${currentUser.id}`).set(0);
-            
-            // Load messages
+            // Refresh list to highlight selection
+            renderChatsList();
+
+            // Load Messages
             loadMessages(chatId);
             
-            // Listen for typing
-            listenForTyping(chatId, otherUser.id);
-            
-            // Listen for user updates
-            database.ref('users/' + otherUser.id).on('value', (snapshot) => {
-                if (snapshot.exists() && currentChat === chatId) {
-                    const updatedUser = snapshot.val();
-                    currentChatUser = updatedUser;
-                    updateChatStatus(updatedUser);
-                }
-            });
-            
-            renderChatsList();
-            
-            // Focus input
-            document.getElementById('messageInput').focus();
+            // Clear input
+            document.getElementById('messageInput').value = '';
+
+            // Handle mobile view
+            if (window.innerWidth < 768) {
+                document.getElementById('leftPanel').classList.add('hidden');
+                document.getElementById('chatView').classList.remove('hidden');
+            }
         }
 
-        function updateChatStatus(otherUser) {
-            const statusEl = document.getElementById('chatStatus');
-            if (otherUser.online) {
-                statusEl.textContent = 'online';
-                statusEl.classList.add('text-[#00a884]');
+        function updateChatHeader(user) {
+             const imgEl = document.getElementById('chatAvatarImg');
+             const letterEl = document.getElementById('chatAvatarLetter');
+             
+             if (user.photo) {
+                 imgEl.src = user.photo;
+                 imgEl.classList.remove('hidden');
+                 letterEl.classList.add('hidden');
+             } else {
+                 imgEl.classList.add('hidden');
+                 letterEl.classList.remove('hidden');
+                 letterEl.textContent = user.name.charAt(0).toUpperCase();
+             }
+
+             document.getElementById('chatName').textContent = user.name;
+             document.getElementById('chatUserId').textContent = "ID: " + user.oderId;
+             
+             let status = '';
+             if (user.online) {
+                 status = 'Online';
+             } else if (user.lastSeen) {
+                 const date = new Date(user.lastSeen);
+                 status = 'Visto por último ' + date.toLocaleDateString() + ' às ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+             }
+             document.getElementById('chatStatus').textContent = status;
+        }
+
+        function closeChat() {
+            currentChatId = null;
+            if (window.innerWidth < 768) {
+                document.getElementById('leftPanel').classList.remove('hidden');
+                document.getElementById('chatView').classList.add('hidden');
             } else {
-                statusEl.textContent = otherUser.lastSeen ? `visto por último ${formatLastSeen(otherUser.lastSeen)}` : '';
-                statusEl.classList.remove('text-[#00a884]');
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('chatView').classList.add('hidden');
+            }
+            if (messagesListener) {
+                database.ref('messages/' + currentChatId).off('child_added', messagesListener);
             }
         }
 
         function loadMessages(chatId) {
-            const messagesArea = document.getElementById('messagesArea');
-            
-            database.ref(`messages/${chatId}`).orderByChild('timestamp').on('value', (snapshot) => {
-                messagesArea.innerHTML = '';
-                
-                const messages = snapshot.val() || {};
-                let lastDate = '';
-                
-                Object.values(messages).sort((a, b) => a.timestamp - b.timestamp).forEach(msg => {
-                    const msgDate = formatDate(msg.timestamp);
-                    
-                    if (msgDate !== lastDate) {
-                        lastDate = msgDate;
-                        const dateDiv = document.createElement('div');
-                        dateDiv.className = 'flex justify-center my-4';
-                        dateDiv.innerHTML = `<span class="bg-[#182229] text-[#8696a0] text-xs px-3 py-1 rounded-lg">${msgDate}</span>`;
-                        messagesArea.appendChild(dateDiv);
-                    }
-                    
-                    const isMe = msg.senderId === currentUser.id;
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = `flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`;
-                    msgDiv.innerHTML = `
-                        <div class="relative max-w-[65%] px-3 py-2 rounded-lg ${isMe ? 'message-out' : 'message-in'} shadow">
-                            <p class="text-[#111b21] text-sm pr-14 break-words">${escapeHtml(msg.text)}</p>
-                            <div class="absolute bottom-1 right-2 flex items-center gap-1">
-                                <span class="text-[#667781] text-[11px]">${formatTime(msg.timestamp)}</span>
-                                ${isMe ? getCheckmarks(msg.status) : ''}
-                            </div>
-                        </div>
-                    `;
-                    messagesArea.appendChild(msgDiv);
-                });
-                
-                messagesArea.scrollTop = messagesArea.scrollHeight;
+            const container = document.getElementById('messagesArea');
+            container.innerHTML = '';
+
+            if (messagesListener) {
+                database.ref('messages/' + currentChatId).off(); // Remove previous listeners
+            }
+
+            // Listen for new messages
+            messagesListener = database.ref('messages/' + chatId).limitToLast(100).on('child_added', (snapshot) => {
+                const msg = snapshot.val();
+                renderMessage(msg);
+                container.scrollTop = container.scrollHeight;
             });
         }
 
-        function escapeHtml(text) {
+        function renderMessage(msg) {
+            const container = document.getElementById('messagesArea');
+            const isMe = msg.sender === currentUser.id;
+            
             const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function getCheckmarks(status) {
-            if (status === 'read') {
-                return '<svg viewBox="0 0 16 11" class="w-4 h-3 text-[#53bdeb]" fill="currentColor"><path d="M11.071.653a.457.457 0 0 0-.304-.102.493.493 0 0 0-.381.178l-6.19 7.636-2.405-2.272a.463.463 0 0 0-.336-.136.475.475 0 0 0-.347.147.473.473 0 0 0 .002.692l2.764 2.612a.478.478 0 0 0 .322.123h.041a.482.482 0 0 0 .344-.176l6.507-8.045a.464.464 0 0 0-.017-.657zm-5.107 7.636l-1.2-1.133a.463.463 0 0 0-.336-.136.475.475 0 0 0-.347.147.473.473 0 0 0 .002.692l1.559 1.472a.478.478 0 0 0 .322.123h.041a.482.482 0 0 0 .344-.176l.054-.066-.439-.923zm8.012-7.636a.457.457 0 0 0-.304-.102.493.493 0 0 0-.381.178l-6.19 7.636-1.028-.971-.439.923 1.103 1.041a.478.478 0 0 0 .322.123h.041a.482.482 0 0 0 .344-.176l6.549-8.097a.464.464 0 0 0-.017-.655z"></path></svg>';
-            } else if (status === 'delivered') {
-                return '<svg viewBox="0 0 16 11" class="w-4 h-3 text-[#667781]" fill="currentColor"><path d="M11.071.653a.457.457 0 0 0-.304-.102.493.493 0 0 0-.381.178l-6.19 7.636-2.405-2.272a.463.463 0 0 0-.336-.136.475.475 0 0 0-.347.147.473.473 0 0 0 .002.692l2.764 2.612a.478.478 0 0 0 .322.123h.041a.482.482 0 0 0 .344-.176l6.507-8.045a.464.464 0 0 0-.017-.657zm-5.107 7.636l-1.2-1.133a.463.463 0 0 0-.336-.136.475.475 0 0 0-.347.147.473.473 0 0 0 .002.692l1.559 1.472a.478.478 0 0 0 .322.123h.041a.482.482 0 0 0 .344-.176l.054-.066-.439-.923zm8.012-7.636a.457.457 0 0 0-.304-.102.493.493 0 0 0-.381.178l-6.19 7.636-1.028-.971-.439.923 1.103 1.041a.478.478 0 0 0 .322.123h.041a.482.482 0 0 0 .344-.176l6.549-8.097a.464.464 0 0 0-.017-.655z"></path></svg>';
-            }
-            return '<svg viewBox="0 0 12 11" class="w-3 h-3 text-[#667781]" fill="currentColor"><path d="M11.155.653a.457.457 0 0 0-.305-.102.493.493 0 0 0-.38.178L4.28 8.365 1.628 6.093a.463.463 0 0 0-.336-.136.475.475 0 0 0-.347.147.473.473 0 0 0 .002.692l2.764 2.612a.478.478 0 0 0 .322.123h.041a.482.482 0 0 0 .344-.176l6.507-8.045a.464.464 0 0 0-.017-.657z"></path></svg>';
+            div.className = `flex ${isMe ? 'justify-end' : 'justify-start'} mb-2`;
+            
+            const time = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            div.innerHTML = `
+                <div class="${isMe ? 'message-out' : 'message-in'} rounded-lg px-2 py-1 max-w-[80%] relative shadow-md text-sm md:text-base">
+                    <div class="px-1 pt-1 pb-4">
+                        ${msg.text}
+                    </div>
+                    <div class="absolute right-2 bottom-1 text-[10px] text-[#aebac1] flex items-center gap-1">
+                        ${time}
+                        ${isMe ? '<span class="text-[#53bdeb]">✓✓</span>' : ''}
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
         }
 
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
             
-            if (!text || !currentChat) return;
-            
-            const messageRef = database.ref(`messages/${currentChat}`).push();
-            const message = {
-                id: messageRef.key,
+            if (!text || !currentChatId) return;
+
+            const messageData = {
+                sender: currentUser.id,
                 text: text,
-                senderId: currentUser.id,
-                timestamp: Date.now(),
-                status: 'sent'
+                timestamp: firebase.database.ServerValue.TIMESTAMP
             };
-            
-            messageRef.set(message);
-            
-            // Update chat
-            const otherUserId = currentChat.split('_').find(id => id !== currentUser.id);
-            database.ref(`chats/${currentChat}`).update({
-                lastMessage: message,
-                [`unread/${otherUserId}`]: firebase.database.ServerValue.increment(1)
+
+            // Push message
+            database.ref('messages/' + currentChatId).push(messageData);
+
+            // Update chat info
+            database.ref('chats/' + currentChatId).update({
+                lastMessage: messageData
             });
-            
-            // Clear typing
-            database.ref(`typing/${currentChat}/${currentUser.id}`).remove();
-            
+
             input.value = '';
             input.focus();
-            
-            // Close emoji picker
-            document.getElementById('emojiPicker').classList.add('hidden');
         }
 
-        function handleKeyDown(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
+        function handleKeyDown(event) {
+            if (event.key === 'Enter') {
                 sendMessage();
             }
         }
 
         function handleTyping() {
-            if (!currentChat) return;
-            
-            database.ref(`typing/${currentChat}/${currentUser.id}`).set(true);
-            
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
-                database.ref(`typing/${currentChat}/${currentUser.id}`).remove();
-            }, 2000);
+            // Typing indicator logic can be implemented here (updating a typing status in DB)
         }
 
-        function listenForTyping(chatId, otherUserId) {
-            database.ref(`typing/${chatId}/${otherUserId}`).on('value', (snapshot) => {
-                const indicator = document.getElementById('typingIndicator');
-                if (snapshot.val()) {
-                    indicator.classList.remove('hidden');
-                } else {
-                    indicator.classList.add('hidden');
-                }
-            });
-        }
-
-        // Emoji Picker
-        function initEmojiPicker() {
-            const grid = document.getElementById('emojiGrid');
-            grid.innerHTML = '';
-            
-            emojis.forEach(emoji => {
-                const btn = document.createElement('button');
-                btn.className = 'emoji-btn';
-                btn.textContent = emoji;
-                btn.onclick = () => insertEmoji(emoji);
-                grid.appendChild(btn);
-            });
-        }
-
-        function toggleEmojiPicker() {
-            const picker = document.getElementById('emojiPicker');
-            picker.classList.toggle('hidden');
-        }
-
-        function insertEmoji(emoji) {
-            const input = document.getElementById('messageInput');
-            const start = input.selectionStart;
-            const end = input.selectionEnd;
-            const text = input.value;
-            
-            input.value = text.substring(0, start) + emoji + text.substring(end);
-            input.focus();
-            input.setSelectionRange(start + emoji.length, start + emoji.length);
-            
-            handleTyping();
-        }
-
-        // Close emoji picker when clicking outside
-        document.addEventListener('click', (e) => {
-            const picker = document.getElementById('emojiPicker');
-            const emojiBtn = e.target.closest('button');
-            
-            if (!picker.contains(e.target) && !emojiBtn?.querySelector('svg[viewBox="0 0 24 24"]')?.parentElement?.onclick?.toString().includes('toggleEmojiPicker')) {
-                if (!e.target.closest('.emoji-btn') && !e.target.closest('button[onclick="toggleEmojiPicker()"]')) {
-                    picker.classList.add('hidden');
-                }
-            }
-        });
+        // --- Modals & Utilities ---
 
         function showNewChat() {
             document.getElementById('newChatModal').classList.remove('hidden');
-            document.getElementById('searchUserInput').value = '';
+            // Load all users initially
             updateUsersList();
+            document.getElementById('searchUserInput').focus();
         }
 
         function hideNewChat() {
             document.getElementById('newChatModal').classList.add('hidden');
         }
 
-        function closeChat() {
-            currentChat = null;
-            currentChatUser = null;
-            document.getElementById('chatView').classList.add('hidden');
-            document.getElementById('chatView').classList.remove('flex');
-            document.getElementById('emptyState').classList.remove('hidden');
-            renderChatsList();
-        }
-
-        function searchChats() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const items = document.querySelectorAll('#chatsList > div');
-            
-            items.forEach(item => {
-                const name = item.querySelector('.text-white')?.textContent.toLowerCase() || '';
-                item.style.display = name.includes(query) ? 'flex' : 'none';
-            });
-        }
-
-        // Profile Modal
         function showProfileModal() {
             document.getElementById('profileModal').classList.remove('hidden');
-            document.getElementById('profileName').value = currentUser.name;
-            document.getElementById('profilePhoto').value = currentUser.photo || '';
-            document.getElementById('profileBio').value = currentUser.bio || '';
-            document.getElementById('profileUserId').textContent = currentUser.oderId;
             
-            // Update preview
+            // Populate data
             const imgEl = document.getElementById('profileAvatarImg');
             const letterEl = document.getElementById('profileAvatarLetter');
             
@@ -881,6 +775,11 @@
                 letterEl.classList.remove('hidden');
                 letterEl.textContent = currentUser.name.charAt(0).toUpperCase();
             }
+
+            document.getElementById('profileName').value = currentUser.name;
+            document.getElementById('profilePhoto').value = currentUser.photo || '';
+            document.getElementById('profileBio').value = currentUser.bio || '';
+            document.getElementById('profileUserId').textContent = currentUser.oderId;
         }
 
         function hideProfileModal() {
@@ -892,56 +791,62 @@
             const photo = document.getElementById('profilePhoto').value.trim();
             const bio = document.getElementById('profileBio').value.trim();
 
-            if (!name) {
-                alert('O nome não pode estar vazio');
-                return;
-            }
+            if (!name) return alert("Nome é obrigatório");
 
-            const updates = {
+            await database.ref('users/' + currentUser.id).update({
                 name: name,
                 name_lower: name.toLowerCase(),
                 photo: photo,
                 bio: bio
-            };
+            });
 
-            await database.ref('users/' + currentUser.id).update(updates);
-            
-            currentUser = { ...currentUser, ...updates };
+            // Update local state and UI
+            currentUser.name = name;
+            currentUser.photo = photo;
+            currentUser.bio = bio;
             updateMyAvatar();
             hideProfileModal();
         }
 
         function copyUserId() {
-            navigator.clipboard.writeText(currentUser.oderId);
-            alert('ID copiado: ' + currentUser.oderId);
+            const id = document.getElementById('profileUserId').textContent;
+            navigator.clipboard.writeText(id).then(() => {
+                alert("ID copiado!");
+            });
         }
 
-        // Utility functions
-        function formatTime(timestamp) {
-            return new Date(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        // Emoji Logic
+        function initEmojiPicker() {
+            const grid = document.getElementById('emojiGrid');
+            emojis.forEach(emoji => {
+                const btn = document.createElement('div');
+                btn.className = 'emoji-btn flex items-center justify-center';
+                btn.textContent = emoji;
+                btn.onclick = () => {
+                    const input = document.getElementById('messageInput');
+                    input.value += emoji;
+                    input.focus();
+                };
+                grid.appendChild(btn);
+            });
         }
 
-        function formatDate(timestamp) {
-            const date = new Date(timestamp);
-            const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
+        function toggleEmojiPicker() {
+            const picker = document.getElementById('emojiPicker');
+            picker.classList.toggle('hidden');
+        }
+
+        // Close emoji picker when clicking outside
+        document.addEventListener('click', (e) => {
+            const picker = document.getElementById('emojiPicker');
+            const btn = e.target.closest('button');
+            const isEmojiBtn = btn && btn.onclick && btn.onclick.toString().includes('toggleEmojiPicker');
             
-            if (date.toDateString() === today.toDateString()) return 'Hoje';
-            if (date.toDateString() === yesterday.toDateString()) return 'Ontem';
-            return date.toLocaleDateString('pt-BR');
-        }
+            if (!picker.classList.contains('hidden') && !picker.contains(e.target) && !isEmojiBtn) {
+                picker.classList.add('hidden');
+            }
+        });
 
-        function formatLastSeen(timestamp) {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diff = now - date;
-            
-            if (diff < 60000) return 'agora';
-            if (diff < 3600000) return `há ${Math.floor(diff / 60000)} min`;
-            if (date.toDateString() === now.toDateString()) return `hoje às ${formatTime(timestamp)}`;
-            return `${formatDate(timestamp)} às ${formatTime(timestamp)}`;
-        }
     </script>
 </body>
 </html>
