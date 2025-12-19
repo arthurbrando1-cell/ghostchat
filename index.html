@@ -2,15 +2,14 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GhostChat Pro - Ultimate UI</title>
+    <title>GhostChat Pro + Groups</title>
     <style>
         :root {
             --bg-main: #111b21; --bg-sidebar: #111b21; --bg-panel: #202c33;
             --bg-chat: #0b141a; --accent: #00a884; --text-main: #e9edef;
             --text-dim: #8696a0; --msg-own: #005c4b; --msg-other: #202c33;
-            --danger: #ea0038; --glass: rgba(32, 44, 51, 0.9);
+            --danger: #ea0038;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; overflow: hidden; }
@@ -21,97 +20,89 @@
         .sidebar-header { background: var(--bg-panel); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; height: 60px; }
         .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1.5px solid var(--accent); }
         
-        /* Barra de Status */
-        .status-bar { padding: 10px 16px; display: flex; gap: 12px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.1); background: #111b21; scrollbar-width: none; }
-        .status-thumb { min-width: 58px; height: 58px; border-radius: 50%; border: 2px solid var(--accent); padding: 2px; cursor: pointer; position: relative; flex-shrink: 0; }
+        /* Seções da Sidebar */
+        .section-title { padding: 10px 16px; font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.2); }
+        .status-bar { padding: 10px 16px; display: flex; gap: 12px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.1); scrollbar-width: none; }
+        .status-thumb { min-width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--accent); padding: 2px; cursor: pointer; flex-shrink: 0; }
         .status-thumb img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-        .status-thumb.add-btn::after { content: "+"; position: absolute; bottom: 0; right: 0; background: var(--accent); width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 2px solid var(--bg-main); }
 
         .chat-list { flex: 1; overflow-y: auto; }
-        .chat-item { display: flex; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
+        .chat-item { display: flex; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; transition: 0.2s; }
         .chat-item:hover { background: #2a3942; }
         .chat-item img { width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; }
 
         /* Main Chat */
-        .main-chat { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); background-size: cover; background-position: center; position: relative; }
+        .main-chat { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); background-size: cover; background-position: center; }
         .chat-header { background: var(--bg-panel); padding: 10px 16px; display: flex; align-items: center; height: 60px; z-index: 10; justify-content: space-between; }
-        #messages-container { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 8px; z-index: 5; }
+        #messages-container { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 8px; }
         
-        /* Mensagens */
-        .msg-wrapper { display: flex; align-items: flex-end; gap: 8px; max-width: 75%; }
+        /* Bubbles */
+        .msg-wrapper { display: flex; align-items: flex-end; gap: 8px; max-width: 75%; margin-bottom: 4px; }
         .msg-wrapper.own { align-self: flex-end; flex-direction: row-reverse; }
-        .msg-bubble { padding: 9px 13px; border-radius: 12px; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.4); word-break: break-word; cursor: pointer; position: relative; }
+        .msg-bubble { padding: 8px 12px; border-radius: 10px; font-size: 14.5px; position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.2); }
         .own .msg-bubble { background: var(--msg-own); border-bottom-right-radius: 2px; }
         .other .msg-bubble { background: var(--msg-other); border-bottom-left-radius: 2px; }
+        .sender-name { font-size: 11px; font-weight: bold; color: var(--accent); display: block; margin-bottom: 3px; }
 
-        /* Input Bar */
-        .input-bar { background: var(--bg-panel); padding: 8px 15px; display: flex; align-items: center; gap: 10px; z-index: 10; }
-        .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
-        .icon-btn { fill: var(--text-dim); cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        /* Inputs */
+        .input-bar { background: var(--bg-panel); padding: 10px; display: flex; align-items: center; gap: 8px; }
+        .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px; border-radius: 20px; color: white; outline: none; }
+        .icon-btn { fill: var(--text-dim); cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
         .icon-btn:hover { fill: var(--accent); }
 
-        /* Viewer de Status */
-        #status-viewer { position: fixed; inset: 0; background: black; z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        .status-content { position: relative; width: 100%; max-width: 450px; height: 100%; display: flex; align-items: center; justify-content: center; }
-        .status-media-box { width: 100%; height: 100%; object-fit: contain; }
-        .status-overlay { position: absolute; top: 0; width: 100%; padding: 45px 20px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); display: flex; align-items: center; gap: 10px; z-index: 10; }
-        .status-title-text { position: absolute; bottom: 80px; width: 100%; text-align: center; padding: 20px; font-size: 19px; text-shadow: 2px 2px 5px rgba(0,0,0,1); z-index: 10; color: white; }
-        .status-progress { position: absolute; top: 15px; left: 10px; right: 10px; height: 3px; background: rgba(255,255,255,0.3); z-index: 20; border-radius: 10px; overflow: hidden; }
-        .status-progress-bar { height: 100%; background: white; width: 0%; }
-
         /* Modais */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-        .modal-content { background: var(--bg-panel); padding: 30px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; }
-        .modal-content input { width: 100%; padding: 14px; background: #111b21; border: 1px solid #3b4a54; color: white; border-radius: 12px; margin-bottom: 15px; outline: none; }
-        .btn-action { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--bg-panel); padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; }
+        .modal-content input { width: 100%; padding: 12px; background: #111b21; border: 1px solid #3b4a54; color: white; border-radius: 8px; margin-bottom: 10px; }
+        .btn-action { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 5px; }
         
-        #emoji-picker { position: absolute; bottom: 75px; left: 15px; background: var(--glass); backdrop-filter: blur(10px); width: 320px; max-height: 280px; overflow-y: auto; display: none; grid-template-columns: repeat(8, 1fr); padding: 15px; border-radius: 20px; z-index: 100; border: 1px solid rgba(255,255,255,0.1); }
-        .emoji-item { font-size: 24px; padding: 8px; cursor: pointer; text-align: center; }
-
+        #emoji-picker { position: absolute; bottom: 70px; left: 10px; background: var(--bg-panel); width: 300px; height: 200px; overflow-y: auto; display: none; grid-template-columns: repeat(7, 1fr); padding: 10px; border-radius: 10px; border: 1px solid #3b4a54; }
+        .emoji-item { font-size: 20px; padding: 5px; cursor: pointer; text-align: center; }
         .active { display: flex !important; }
         .hidden { display: none !important; }
-        .chat-img { max-width: 250px; border-radius: 10px; margin-top: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="login-screen" style="position:fixed; inset:0; background:var(--bg-main); z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <div style="font-size: 80px; margin-bottom: 10px;">👻</div>
-        <h1>GhostChat <span style="color:var(--accent)">PRO</span></h1>
-        <button onclick="handleLogin()" class="btn-action" style="width: auto; padding: 15px 60px; border-radius: 50px; margin-top: 20px;">ENTRAR NO ANONIMATO</button>
+        <h1 style="margin-bottom:20px;">GhostChat <span style="color:var(--accent)">PRO</span></h1>
+        <button onclick="handleLogin()" class="btn-action" style="width:200px">ENTRAR</button>
     </div>
 
     <div id="app" class="hidden">
         <div class="sidebar">
             <div class="sidebar-header">
                 <img src="" id="my-pfp" class="avatar" onclick="openModal('modal-profile')">
-                <div style="display: flex; gap: 10px;">
-                    <div class="icon-btn" onclick="openModal('modal-status-create')" title="Postar Status">
-                        <svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"></path></svg>
+                <div style="display:flex; gap:15px">
+                    <div class="icon-btn" onclick="openModal('modal-group-create')" title="Criar Grupo">
+                        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M13 13v5h-2v-5H6v-2h5V6h2v5h5v2h-5z"/></svg>
                     </div>
-                    <div class="icon-btn" onclick="openModal('modal-add')">
-                        <svg viewBox="0 0 24 24" width="28" height="28"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
+                    <div class="icon-btn" onclick="openModal('modal-add')" title="Add Amigo">
+                        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                     </div>
                 </div>
             </div>
 
-            <div class="status-bar" id="status-list-ui">
-                <div class="status-thumb add-btn" onclick="openModal('modal-status-create')">
-                    <img src="" id="my-status-pfp">
-                </div>
-            </div>
+            <div class="status-bar" id="status-list-ui"></div>
 
+            <div class="section-title">Grupos</div>
+            <div class="chat-list" id="group-list-ui" style="flex: 0.5; border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
+
+            <div class="section-title">Conversas</div>
             <div class="chat-list" id="chat-list-ui"></div>
         </div>
 
         <div class="main-chat" id="chat-bg-area">
             <div class="chat-header" id="header-ui" style="visibility:hidden">
-                <div style="display: flex; align-items: center;">
-                    <img src="" id="target-pfp" class="avatar" style="margin-right: 15px;">
-                    <h4 id="target-name">Nome</h4>
+                <div style="display:flex; align-items:center;">
+                    <img src="" id="target-pfp" class="avatar" style="margin-right:12px">
+                    <div>
+                        <h4 id="target-name">Nome</h4>
+                        <small id="target-info" style="color:var(--text-dim)"></small>
+                    </div>
                 </div>
-                <div class="icon-btn" onclick="openModal('modal-wallpaper')">
-                    <svg viewBox="0 0 24 24" width="24" height="24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3z"></path></svg>
+                <div id="admin-tools" style="display:none">
+                    <button class="btn-action" style="background:var(--danger); padding:5px 10px; font-size:10px" onclick="deleteCurrentGroup()">APAGAR GRUPO</button>
                 </div>
             </div>
 
@@ -119,84 +110,43 @@
             <div id="emoji-picker"></div>
 
             <div class="input-bar">
-                <div class="icon-btn" onclick="toggleEmojis()">
-                    <svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5s.67 1.5 1.5 1.5zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"></path></svg>
-                </div>
-                <label class="icon-btn" for="img-upload">
-                    <svg viewBox="0 0 24 24" width="26" height="26"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg>
-                </label>
+                <div class="icon-btn" onclick="toggleEmojis()">😊</div>
+                <label class="icon-btn" for="img-upload">📎</label>
                 <input type="file" id="img-upload" accept="image/*" style="display:none">
-                <input type="text" id="msg-input" placeholder="Conversar anonimamente..." autocomplete="off">
-                <div class="icon-btn" onclick="handleSendMsg()">
-                    <svg viewBox="0 0 24 24" width="26" height="26" fill="var(--accent)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-                </div>
+                <input type="text" id="msg-input" placeholder="Digite uma mensagem...">
+                <button class="btn-action" onclick="handleSendMsg()" style="width:60px; margin:0">ENVIAR</button>
             </div>
         </div>
     </div>
 
-    <div id="status-viewer">
-        <div class="status-progress"><div class="status-progress-bar" id="status-timer"></div></div>
-        <div class="status-content">
-            <div class="status-overlay">
-                <img src="" id="sv-pfp" class="avatar">
-                <b id="sv-name">Nome</b>
-            </div>
-            <div id="sv-media-container" style="width:100%; height:100%;"></div>
-            <div class="status-title-text" id="sv-title"></div>
-        </div>
-        <button onclick="closeStatus()" style="position:fixed; top:20px; right:20px; background:rgba(0,0,0,0.5); border:none; color:white; font-size:30px; cursor:pointer; width:45px; height:45px; border-radius:50%;">&times;</button>
-    </div>
-
-    <div id="modal-status-create" class="modal">
-        <div class="modal-content">
-            <h3>Novo Status</h3>
-            <input type="text" id="st-title" placeholder="Escreva uma legenda...">
-            <label class="btn-action" style="display:block; margin-bottom:10px; cursor:pointer;">
-                UPLOAD DE IMAGEM
-                <input type="file" id="st-upload" accept="image/*" style="display:none">
-            </label>
-            <p style="color:var(--text-dim); font-size:12px; margin:10px 0;">OU</p>
-            <input type="text" id="st-media" placeholder="Link da Imagem/Vídeo (.mp4)">
-            <button class="btn-action" onclick="postStatus()">POSTAR STATUS</button>
-            <button style="background:none; border:none; color:var(--text-dim); margin-top:15px; cursor:pointer;" onclick="closeModals()">CANCELAR</button>
-        </div>
-    </div>
-
-    <div id="modal-profile" class="modal">
-        <div class="modal-content">
-            <h3>Configurações de Perfil</h3>
-            <div id="display-id" style="font-weight:bold; color:var(--accent); font-size:24px; margin:15px 0;">----</div>
-            <input type="text" id="in-name" placeholder="Seu nome">
-            <input type="text" id="in-pic" placeholder="URL da imagem">
-            <button class="btn-action" onclick="saveProfile()">ATUALIZAR PERFIL</button>
-            <button style="background:none; border:none; color:var(--text-dim); margin-top:15px; cursor:pointer;" onclick="closeModals()">FECHAR</button>
-        </div>
-    </div>
+    <div id="modal-group-create" class="modal"><div class="modal-content">
+        <h3>Criar Novo Grupo</h3>
+        <input type="text" id="gr-name" placeholder="Nome do Grupo">
+        <input type="text" id="gr-pic" placeholder="URL da Foto do Grupo">
+        <button class="btn-action" onclick="createGroup()">CRIAR GRUPO</button>
+        <button class="btn-action" style="background:#444" onclick="closeModals()">CANCELAR</button>
+    </div></div>
 
     <div id="modal-add" class="modal"><div class="modal-content">
-        <h3>Localizar Fantasma</h3>
+        <h3>Buscar Amigo (ID)</h3>
         <input type="text" id="search-id" placeholder="Ex: 8842">
         <button class="btn-action" onclick="findGhost()">CONECTAR</button>
+        <button class="btn-action" style="background:#444" onclick="closeModals()">FECHAR</button>
     </div></div>
 
-    <div id="modal-wallpaper" class="modal"><div class="modal-content">
-        <h3>Papel de Parede</h3>
-        <input type="text" id="in-wall" placeholder="URL da imagem">
-        <button class="btn-action" onclick="applyWallpaper()">APLICAR</button>
+    <div id="modal-profile" class="modal"><div class="modal-content">
+        <h3>Seu Perfil</h3>
+        <p id="my-id-display" style="text-align:center; color:var(--accent); font-weight:bold"></p>
+        <input type="text" id="in-name" placeholder="Nome">
+        <input type="text" id="in-pic" placeholder="URL Foto">
+        <button class="btn-action" onclick="saveProfile()">SALVAR</button>
+        <button class="btn-action" style="background:#444" onclick="closeModals()">VOLTAR</button>
     </div></div>
-
-    <div id="modal-delete" class="modal">
-        <div class="modal-content">
-            <h3>Apagar Mensagem?</h3>
-            <button class="btn-action" id="btn-del-everyone" style="background:var(--danger); margin-bottom:10px;">PARA TODOS</button>
-            <button class="btn-action" id="btn-del-me">PARA MIM</button>
-        </div>
-    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDocs, where, limit, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDocs, where, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC0DhQ-EUs3Azqn7_tbB-W3S9ko0DaUWls",
@@ -211,7 +161,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let myData = {}, activeChatId = null, activeTarget = null, unsub = null, statusTimer = null;
+        let myData = {}, activeChatId = null, isGroup = false, unsub = null;
 
         window.handleLogin = () => signInAnonymously(auth);
 
@@ -227,94 +177,108 @@
                     await setDoc(userRef, myData);
                 }
                 document.getElementById('my-pfp').src = myData.pic;
-                document.getElementById('my-status-pfp').src = myData.pic;
-                document.getElementById('display-id').innerText = myData.ghostId;
-                document.getElementById('in-name').value = myData.name;
-                document.getElementById('in-pic').value = myData.pic;
+                document.getElementById('my-id-display').innerText = "ID: " + myData.ghostId;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
                 loadSidebar();
-                loadStatus();
+                loadGroups();
             }
         });
 
-        // --- STATUS COM UPLOAD ---
-        let stUploadData = "";
-        document.getElementById('st-upload').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => { stUploadData = reader.result; alert("Imagem carregada!"); };
-            }
-        });
-
-        window.postStatus = async () => {
-            const title = document.getElementById('st-title').value;
-            const link = document.getElementById('st-media').value;
-            const media = stUploadData || link;
-
-            if(!media) return alert("Selecione um arquivo ou cole um link!");
-
-            await addDoc(collection(db, "status"), {
-                uid: myData.uid, name: myData.name, pic: myData.pic,
-                title, media, timestamp: serverTimestamp()
+        // --- SISTEMA DE GRUPOS ---
+        window.createGroup = async () => {
+            const name = document.getElementById('gr-name').value;
+            const pic = document.getElementById('gr-pic').value || "https://api.dicebear.com/7.x/identicon/svg?seed=" + name;
+            if(!name) return;
+            await addDoc(collection(db, "groups"), {
+                name, pic, owner: myData.uid, members: [myData.uid], timestamp: serverTimestamp()
             });
-            
-            stUploadData = "";
-            document.getElementById('st-title').value = '';
-            document.getElementById('st-media').value = '';
             closeModals();
         };
 
-        function loadStatus() {
-            onSnapshot(query(collection(db, "status"), orderBy("timestamp", "desc")), (snap) => {
-                const ui = document.getElementById('status-list-ui');
-                ui.innerHTML = `<div class="status-thumb add-btn" onclick="openModal('modal-status-create')"><img src="${myData.pic}"></div>`;
+        function loadGroups() {
+            onSnapshot(collection(db, "groups"), (snap) => {
+                const list = document.getElementById('group-list-ui');
+                list.innerHTML = '';
                 snap.forEach(d => {
-                    const s = d.data();
-                    const div = document.createElement('div');
-                    div.className = 'status-thumb';
-                    div.innerHTML = `<img src="${s.pic}">`;
-                    div.onclick = () => viewStatus(s);
-                    ui.appendChild(div);
+                    const g = d.data();
+                    const item = document.createElement('div');
+                    item.className = 'chat-item';
+                    item.innerHTML = `<img src="${g.pic}"> <div><b>${g.name}</b><br><small>Grupo</small></div>`;
+                    item.onclick = () => startChat(g, d.id, true);
+                    list.appendChild(item);
                 });
             });
         }
 
-        window.viewStatus = (s) => {
-            const viewer = document.getElementById('status-viewer');
-            const mediaBox = document.getElementById('sv-media-container');
-            const bar = document.getElementById('status-timer');
-            viewer.style.display = 'flex';
-            document.getElementById('sv-pfp').src = s.pic;
-            document.getElementById('sv-name').innerText = s.name;
-            document.getElementById('sv-title').innerText = s.title || "";
-            const isVideo = s.media.startsWith('data:video') || s.media.toLowerCase().includes('.mp4');
-            mediaBox.innerHTML = isVideo ? `<video src="${s.media}" autoplay class="status-media-box"></video>` : `<img src="${s.media}" class="status-media-box">`;
-            bar.style.transition = 'none'; bar.style.width = '0%';
-            setTimeout(() => { bar.style.transition = 'width 6s linear'; bar.style.width = '100%'; }, 100);
-            clearTimeout(statusTimer);
-            statusTimer = setTimeout(closeStatus, 6000);
-        };
-
-        window.closeStatus = () => {
-            document.getElementById('status-viewer').style.display = 'none';
-            document.getElementById('sv-media-container').innerHTML = '';
-            clearTimeout(statusTimer);
-        };
-
-        // --- CHAT SYSTEM ---
-        window.handleSendMsg = async () => {
-            const input = document.getElementById('msg-input');
-            if(input.value.trim() && activeChatId) {
-                const text = input.value; input.value = '';
-                await addDoc(collection(db, "messages"), { 
-                    chatId: activeChatId, participants: [myData.uid, activeTarget.uid], 
-                    senderId: myData.uid, content: text, type: 'text', timestamp: serverTimestamp(), deletedFor: [] 
-                });
+        window.deleteCurrentGroup = async () => {
+            if(confirm("Deseja mesmo apagar o grupo?") && isGroup) {
+                await deleteDoc(doc(db, "groups", activeChatId));
+                location.reload();
             }
         };
+
+        // --- CHAT GERAL ---
+        function startChat(target, id, groupMode) {
+            isGroup = groupMode;
+            activeChatId = groupMode ? id : [myData.uid, target.uid].sort().join('_');
+            
+            document.getElementById('header-ui').style.visibility = 'visible';
+            document.getElementById('target-name').innerText = target.name;
+            document.getElementById('target-pfp').src = target.pic;
+            
+            // Controle de Admin
+            const adminTools = document.getElementById('admin-tools');
+            if(groupMode && target.owner === myData.uid) adminTools.style.display = 'block';
+            else adminTools.style.display = 'none';
+
+            if(unsub) unsub();
+            const col = isGroup ? "group_messages" : "messages";
+            const q = query(collection(db, col), where("chatId", "==", activeChatId), orderBy("timestamp", "asc"));
+            
+            unsub = onSnapshot(q, (snap) => {
+                const container = document.getElementById('messages-container');
+                container.innerHTML = '';
+                snap.forEach(d => {
+                    const m = d.data();
+                    const wrap = document.createElement('div');
+                    wrap.className = `msg-wrapper ${m.senderId === myData.uid ? 'own' : 'other'}`;
+                    wrap.innerHTML = `
+                        <div class="msg-bubble">
+                            ${isGroup && m.senderId !== myData.uid ? `<span class="sender-name">${m.senderName}</span>` : ''}
+                            ${m.type === 'image' ? `<img src="${m.content}" style="max-width:200px; border-radius:8px">` : m.content}
+                        </div>`;
+                    container.appendChild(wrap);
+                });
+                container.scrollTop = container.scrollHeight;
+            });
+        }
+
+        window.handleSendMsg = async () => {
+            const input = document.getElementById('msg-input');
+            if(!input.value.trim() || !activeChatId) return;
+            const col = isGroup ? "group_messages" : "messages";
+            await addDoc(collection(db, col), {
+                chatId: activeChatId, senderId: myData.uid, senderName: myData.name,
+                content: input.value, type: 'text', timestamp: serverTimestamp()
+            });
+            input.value = '';
+        };
+
+        // Auxiliares (Mesma lógica do anterior)
+        window.openModal = (id) => document.getElementById(id).classList.add('active');
+        window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        window.toggleEmojis = () => {
+            const p = document.getElementById('emoji-picker');
+            p.style.display = p.style.display === 'grid' ? 'none' : 'grid';
+        };
+
+        const emojis = "😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😜🤪😝🤑🤗🤭🤫🤔😐😑😶😏😒🙄😬🤥😌😔😪🤤😴";
+        const picker = document.getElementById('emoji-picker');
+        emojis.match(/./gu).forEach(e => {
+            const s = document.createElement('span'); s.className = 'emoji-item'; s.innerText = e;
+            s.onclick = () => document.getElementById('msg-input').value += e; picker.appendChild(s);
+        });
 
         function loadSidebar() {
             onSnapshot(query(collection(db, "messages"), where("participants", "array-contains", myData.uid)), async (snap) => {
@@ -328,94 +292,26 @@
                         const u = uSnap.docs[0].data();
                         const item = document.createElement('div');
                         item.className = 'chat-item';
-                        item.innerHTML = `<img src="${u.pic}"> <div><b>${u.name}</b><br><small style="color:var(--accent)">ID: ${u.ghostId}</small></div>`;
-                        item.onclick = () => startChat(u);
+                        item.innerHTML = `<img src="${u.pic}"> <div><b>${u.name}</b></div>`;
+                        item.onclick = () => startChat(u, null, false);
                         list.appendChild(item);
                     }
                 }
             });
         }
 
-        function startChat(target) {
-            activeTarget = target;
-            activeChatId = [myData.uid, target.uid].sort().join('_');
-            document.getElementById('header-ui').style.visibility = 'visible';
-            document.getElementById('target-name').innerText = target.name;
-            document.getElementById('target-pfp').src = target.pic;
-            if(unsub) unsub();
-            unsub = onSnapshot(query(collection(db, "messages"), where("chatId", "==", activeChatId), orderBy("timestamp", "asc")), (snap) => {
-                const container = document.getElementById('messages-container');
-                container.innerHTML = '';
-                snap.forEach(d => {
-                    const m = d.data();
-                    if (m.deletedFor && m.deletedFor.includes(myData.uid)) return;
-                    const wrap = document.createElement('div');
-                    wrap.className = `msg-wrapper ${m.senderId === myData.uid ? 'own' : 'other'}`;
-                    let html = m.type === 'image' ? `<img src="${m.content}" class="chat-img">` : m.content;
-                    wrap.innerHTML = `<div class="msg-bubble">${html}</div>`;
-                    wrap.onclick = () => {
-                        openModal('modal-delete');
-                        document.getElementById('btn-del-everyone').style.display = m.senderId === myData.uid ? 'block' : 'none';
-                        document.getElementById('btn-del-everyone').onclick = () => deleteMessage(d.id, true);
-                        document.getElementById('btn-del-me').onclick = () => deleteMessage(d.id, false);
-                    };
-                    container.appendChild(wrap);
-                });
-                container.scrollTop = container.scrollHeight;
-            });
-        }
-
-        async function deleteMessage(msgId, forEveryone) {
-            if (forEveryone) await deleteDoc(doc(db, "messages", msgId));
-            else {
-                const msgRef = doc(db, "messages", msgId);
-                const snap = await getDoc(msgRef);
-                let del = snap.data().deletedFor || [];
-                if (!del.includes(myData.uid)) { del.push(myData.uid); await updateDoc(msgRef, { deletedFor: del }); }
-            }
+        window.findGhost = async () => {
+            const id = document.getElementById('search-id').value;
+            const s = await getDocs(query(collection(db, "users"), where("ghostId", "==", id)));
+            if(!s.empty) startChat(s.docs[0].data(), null, false);
             closeModals();
-        }
+        };
 
-        document.getElementById('img-upload').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if(file && activeChatId) {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = async () => {
-                    await addDoc(collection(db, "messages"), { 
-                        chatId: activeChatId, participants: [myData.uid, activeTarget.uid], 
-                        senderId: myData.uid, content: reader.result, type: 'image', timestamp: serverTimestamp(), deletedFor: [] 
-                    });
-                };
-            }
-        });
-
-        // Emojis e Auxiliares
-        const emojis = "😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😜🤪😝🤑🤗🤭🤫🤔😐😑😶😏😒🙄😬🤥😌😔😪🤤😴😷🤒🤕🤢🤮🤧😵🤯🤠🥳😎🤓🧐😕😟🙁☹️😮😯😲😳🥺😦😧😨😰😥😢😭😤😠😡🤬😈👿💀☠️👻👽🤖";
-        const picker = document.getElementById('emoji-picker');
-        emojis.match(/./gu).forEach(e => {
-            const s = document.createElement('span'); s.className = 'emoji-item'; s.innerText = e;
-            s.onclick = () => document.getElementById('msg-input').value += e; picker.appendChild(s);
-        });
-
-        window.toggleEmojis = () => picker.style.display = picker.style.display === 'grid' ? 'none' : 'grid';
-        window.openModal = (id) => document.getElementById(id).classList.add('active');
-        window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
         window.saveProfile = async () => {
             const n = document.getElementById('in-name').value;
             const p = document.getElementById('in-pic').value;
             await updateDoc(doc(db, "users", auth.currentUser.uid), { name: n, pic: p });
             location.reload();
-        };
-        window.applyWallpaper = () => {
-            document.getElementById('chat-bg-area').style.backgroundImage = `url('${document.getElementById('in-wall').value}')`;
-            closeModals();
-        };
-        window.findGhost = async () => {
-            const id = document.getElementById('search-id').value;
-            const s = await getDocs(query(collection(db, "users"), where("ghostId", "==", id), limit(1)));
-            if(!s.empty) startChat(s.docs[0].data());
-            closeModals();
         };
     </script>
 </body>
