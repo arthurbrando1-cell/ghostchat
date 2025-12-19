@@ -16,7 +16,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; overflow: hidden; }
         
-        /* Login */
         #login-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .login-logo { width: 160px; margin-bottom: 20px; border-radius: 40px; }
         
@@ -25,122 +24,106 @@
         .sidebar-header { background: var(--bg-panel); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; }
         .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1.5px solid var(--accent); }
         
-        .icon-btn { cursor: pointer; color: var(--text-dim); font-size: 20px; background: none; border: none; }
-        .status-bar { padding: 10px; display: flex; gap: 12px; overflow-x: auto; border-bottom: 1px solid #222; min-height: 85px; }
-        .status-circle { min-width: 58px; height: 58px; border-radius: 50%; border: 2px solid var(--accent); padding: 2px; cursor: pointer; }
-        .status-circle img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .icon-btn { cursor: pointer; color: var(--text-dim); font-size: 20px; background: none; border: none; padding: 5px; }
+        .icon-btn:hover { color: var(--text-main); }
 
         .chat-list { flex: 1; overflow-y: auto; }
-        .chat-item { display: flex; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
+        .chat-item { display: flex; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; position: relative; }
         .chat-item:hover { background: #2a3942; }
         .chat-item img { width: 45px; height: 45px; border-radius: 50%; margin-right: 12px; }
+        .delete-chat-btn { position: absolute; right: 10px; color: var(--danger); display: none; }
+        .chat-item:hover .delete-chat-btn { display: block; }
 
         .main-chat { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); position: relative; }
         #messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 80px; }
         
-        .msg-bubble { padding: 8px 12px; border-radius: 10px; color: white; max-width: 320px; margin-bottom: 4px; }
-        .audio-wrapper { display: flex; align-items: center; gap: 8px; }
-        .speed-badge { background: rgba(255,255,255,0.2); font-size: 10px; padding: 2px 5px; border-radius: 10px; cursor: pointer; }
+        .msg-bubble { padding: 8px 12px; border-radius: 10px; color: white; max-width: 70%; margin-bottom: 4px; cursor: pointer; position: relative; word-wrap: break-word; }
+        
+        .emoji-picker { position: absolute; bottom: 70px; left: 20px; background: var(--bg-panel); padding: 10px; border-radius: 10px; display: none; grid-template-columns: repeat(5, 1fr); gap: 10px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .emoji-picker span { cursor: pointer; font-size: 20px; }
 
-        .input-bar { background: var(--bg-panel); padding: 10px 15px; display: flex; align-items: center; gap: 15px; position: absolute; bottom: 0; width: 100%; }
+        .input-bar { background: var(--bg-panel); padding: 10px 15px; display: flex; align-items: center; gap: 10px; position: absolute; bottom: 0; width: 100%; }
         .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px; border-radius: 20px; color: white; outline: none; }
 
-        /* Modais */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 6000; }
         .modal-content { background: var(--bg-panel); padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; }
         .btn-action { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
-        input[type="text"] { width: 100%; padding: 10px; margin-top: 10px; background: #111; border: 1px solid #333; color: white; border-radius: 5px; }
-
         .active { display: flex !important; }
         .hidden { display: none !important; }
-        .recording-blink { color: var(--danger) !important; animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <audio id="notif-sound" src="https://cdn.pixabay.com/audio/2024/02/07/audio_44747c3d2d.mp3"></audio>
-
     <div id="login-screen">
         <img src="https://raw.githubusercontent.com/VInivv/ghostchat/main/Ghost.png" class="login-logo">
-        <h1 style="color:#111; margin-bottom:20px;">GHOST CHAT PRO</h1>
-        <button onclick="handleLogin()" class="btn-action" style="width:250px; background:#111">ENTRAR AGORA</button>
+        <button onclick="handleLogin()" class="btn-action" style="width:250px; background:#111">ENTRAR NO GHOSTCHAT</button>
     </div>
 
     <div id="app" class="hidden">
         <div class="sidebar">
             <div class="sidebar-header">
                 <img src="" id="my-pfp" class="avatar">
-                <div style="display:flex; gap:15px">
-                    <button class="icon-btn" onclick="openModal('modal-status')"><i class="fa-regular fa-circle-play"></i></button>
-                    <button class="icon-btn" onclick="openModal('modal-group')"><i class="fa-solid fa-users-rectangle"></i></button>
-                    <button class="icon-btn" onclick="openModal('modal-add')"><i class="fa-solid fa-user-plus"></i></button>
+                <div>
+                    <button class="icon-btn" onclick="openModal('modal-group')"><i class="fa-solid fa-users"></i></button>
+                    <button class="icon-btn" onclick="openModal('modal-add')"><i class="fa-solid fa-message"></i></button>
                 </div>
             </div>
-            <div class="status-bar" id="status-list-ui"></div>
-            <div class="chat-list" id="global-list-ui"></div>
+            <div class="chat-list" id="chat-list-ui"></div>
         </div>
 
         <div class="main-chat">
-            <div class="chat-header" id="header-ui" style="visibility:hidden; background:var(--bg-panel); padding:10px; display:flex; align-items:center; justify-content:space-between">
+            <div class="chat-header" id="header-ui" style="display:none; background:var(--bg-panel); padding:10px 20px; align-items:center; justify-content:space-between">
                 <div style="display:flex; align-items:center">
-                    <img src="" id="target-pfp" class="avatar" style="margin-right:10px">
-                    <h4 id="target-name">Nome</h4>
+                    <img src="" id="target-pfp" class="avatar" style="margin-right:15px">
+                    <h4 id="target-name">Selecionar Chat</h4>
                 </div>
-                <div id="group-controls" style="display:none">
-                    <button class="icon-btn" onclick="openModal('modal-add-member')" title="Add Membro"><i class="fa-solid fa-user-plus"></i></button>
-                    <button class="icon-btn" onclick="openModal('modal-edit-group')" title="Editar Grupo"><i class="fa-solid fa-pen"></i></button>
+                <div id="group-actions" style="display:none">
+                    <button class="icon-btn" onclick="deleteCurrentGroup()" title="Apagar Grupo"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>
+            
             <div id="messages-container"></div>
+
+            <div class="emoji-picker" id="emoji-list">
+                <span onclick="addEmoji('😀')">😀</span><span onclick="addEmoji('😂')">😂</span><span onclick="addEmoji('❤️')">❤️</span>
+                <span onclick="addEmoji('👍')">👍</span><span onclick="addEmoji('🔥')">🔥</span><span onclick="addEmoji('🤔')">🤔</span>
+                <span onclick="addEmoji('😎')">😎</span><span onclick="addEmoji('💀')">💀</span><span onclick="addEmoji('👻')">👻</span>
+            </div>
+
             <div class="input-bar">
-                <button class="icon-btn" id="mic-btn"><i class="fa-solid fa-microphone"></i></button>
+                <button class="icon-btn" onclick="toggleEmoji()"><i class="fa-regular fa-face-smile"></i></button>
                 <input type="text" id="msg-input" placeholder="Mensagem...">
                 <button onclick="handleSendMsg()" class="icon-btn" style="color:var(--accent)"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
 
-    <div id="modal-status" class="modal"><div class="modal-content">
-        <h3>Postar Status</h3>
-        <input type="text" id="status-img" placeholder="URL da Imagem do Status">
-        <button class="btn-action" onclick="postStatus()">POSTAR</button>
-        <button class="btn-action" style="background:#444" onclick="closeModals()">FECHAR</button>
+    <div id="modal-delete-msg" class="modal"><div class="modal-content">
+        <h3>Apagar Mensagem?</h3>
+        <button class="btn-action" id="btn-del-me">APAGAR PARA MIM</button>
+        <button class="btn-action" id="btn-del-all" style="background:var(--danger)">APAGAR PARA TODOS</button>
+        <button class="btn-action" style="background:#444" onclick="closeModals()">CANCELAR</button>
     </div></div>
 
     <div id="modal-group" class="modal"><div class="modal-content">
-        <h3>Novo Grupo</h3>
-        <input type="text" id="group-name" placeholder="Nome do Grupo">
-        <button class="btn-action" onclick="createGroup()">CRIAR GRUPO</button>
-        <button class="btn-action" style="background:#444" onclick="closeModals()">CANCELAR</button>
-    </div></div>
-
-    <div id="modal-edit-group" class="modal"><div class="modal-content">
-        <h3>Editar Grupo</h3>
-        <input type="text" id="edit-group-name" placeholder="Novo Nome do Grupo">
-        <button class="btn-action" onclick="updateGroup()">SALVAR ALTERAÇÃO</button>
-        <button class="btn-action" style="background:#444" onclick="closeModals()">CANCELAR</button>
-    </div></div>
-
-    <div id="modal-add-member" class="modal"><div class="modal-content">
-        <h3>Adicionar ao Grupo</h3>
-        <input type="text" id="member-id" placeholder="Digite o ID do Fantasma (ex: 1234)">
-        <button class="btn-action" onclick="addMemberToGroup()">ADICIONAR AGORA</button>
+        <h3>Criar Grupo</h3>
+        <input type="text" id="group-name-input" placeholder="Nome do Grupo" style="width:100%; padding:10px; margin:10px 0; border-radius:5px; border:none;">
+        <button class="btn-action" onclick="createNewGroup()">CRIAR</button>
         <button class="btn-action" style="background:#444" onclick="closeModals()">FECHAR</button>
     </div></div>
 
     <div id="modal-add" class="modal"><div class="modal-content">
         <h3>Nova Conversa</h3>
-        <input type="text" id="search-id" placeholder="ID do Fantasma">
-        <button class="btn-action" onclick="findGhost()">ABRIR CHAT</button>
+        <input type="text" id="search-id" placeholder="ID do Ghost (Ex: 1234)" style="width:100%; padding:10px; margin:10px 0; border-radius:5px; border:none;">
+        <button class="btn-action" onclick="findGhost()">INICIAR</button>
         <button class="btn-action" style="background:#444" onclick="closeModals()">FECHAR</button>
     </div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDoc, updateDoc, where, getDocs, arrayUnion } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDoc, updateDoc, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC0DhQ-EUs3Azqn7_tbB-W3S9ko0DaUWls",
@@ -155,8 +138,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let myData = {}, activeChatId = null, isGroup = false, unsubMessages = null;
-        let mediaRecorder, audioChunks = [], isRecording = false, transcriptionText = "";
+        let myData = {}, activeChatId = null, isGroupMode = false, unsubMessages = null, msgToDeleteId = null;
 
         window.handleLogin = () => signInAnonymously(auth);
 
@@ -173,167 +155,136 @@
                 document.getElementById('my-pfp').src = myData.pic;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
-                loadAll();
+                loadChats();
             }
         });
 
-        // STATUS
-        window.postStatus = async () => {
-            const url = document.getElementById('status-img').value;
-            if(!url) return;
-            await addDoc(collection(db, "status"), { uid: myData.uid, name: myData.name, pic: myData.pic, image: url, timestamp: serverTimestamp() });
-            document.getElementById('status-img').value = ''; closeModals();
+        // EMOJIS
+        window.toggleEmoji = () => {
+            const el = document.getElementById('emoji-list');
+            el.style.display = el.style.display === 'grid' ? 'none' : 'grid';
+        };
+        window.addEmoji = (emoji) => {
+            document.getElementById('msg-input').value += emoji;
+            toggleEmoji();
         };
 
-        // GRUPOS
-        window.createGroup = async () => {
-            const name = document.getElementById('group-name').value;
-            if(!name) return;
-            await addDoc(collection(db, "groups"), { name, owner: myData.uid, members: [myData.uid], timestamp: serverTimestamp() });
-            document.getElementById('group-name').value = ''; closeModals();
+        // GESTÃO DE MENSAGENS
+        window.askDeleteMsg = (msgId, senderId) => {
+            if (senderId !== myData.uid) return;
+            msgToDeleteId = msgId;
+            openModal('modal-delete-msg');
         };
 
-        window.updateGroup = async () => {
-            const newName = document.getElementById('edit-group-name').value;
-            if(!newName || !isGroup) return;
-            await updateDoc(doc(db, "groups", activeChatId), { name: newName });
-            document.getElementById('target-name').innerText = newName;
+        document.getElementById('btn-del-me').onclick = () => {
+            const el = document.getElementById(`msg-${msgToDeleteId}`);
+            if(el) el.style.display = 'none';
             closeModals();
         };
 
-        window.addMemberToGroup = async () => {
-            const id = document.getElementById('member-id').value;
-            if(!id || !isGroup) return;
-            const q = query(collection(db, "users"), where("ghostId", "==", id));
+        document.getElementById('btn-del-all').onclick = async () => {
+            const col = isGroupMode ? "group_messages" : "messages";
+            await deleteDoc(doc(db, col, msgToDeleteId));
+            closeModals();
+        };
+
+        // GESTÃO DE GRUPOS
+        window.createNewGroup = async () => {
+            const name = document.getElementById('group-name-input').value;
+            if(!name) return;
+            await addDoc(collection(db, "groups"), { name, owner: myData.uid, members: [myData.uid], timestamp: serverTimestamp() });
+            document.getElementById('group-name-input').value = '';
+            closeModals();
+        };
+
+        window.deleteCurrentGroup = async () => {
+            if(!isGroupMode || !confirm("Apagar este grupo para sempre?")) return;
+            await deleteDoc(doc(db, "groups", activeChatId));
+            location.reload(); 
+        };
+
+        // CHATS E LISTAGEM
+        window.findGhost = async () => {
+            const gid = document.getElementById('search-id').value;
+            const q = query(collection(db, "users"), where("ghostId", "==", gid));
             const snap = await getDocs(q);
             if(!snap.empty) {
-                const userToAdd = snap.docs[0].data();
-                await updateDoc(doc(db, "groups", activeChatId), { members: arrayUnion(userToAdd.uid) });
-                alert("Membro adicionado!");
-                closeModals();
-            } else { alert("ID não encontrado!"); }
+                const target = snap.docs[0].data();
+                startChat(target.name, target.pic, target.uid, false);
+            } else { alert("Ghost não encontrado!"); }
+            closeModals();
         };
 
-        // ÁUDIO
-        window.toggleSpeed = (btn) => {
-            const audio = btn.parentElement.querySelector('audio');
-            const speeds = [1, 1.5, 2];
-            audio.playbackRate = speeds[(speeds.indexOf(audio.playbackRate) + 1) % speeds.length];
-            btn.innerText = audio.playbackRate + 'x';
-        };
-
-        const micBtn = document.getElementById('mic-btn');
-        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = SpeechRec ? new SpeechRec() : null;
-        if(recognition) { recognition.lang = 'pt-BR'; recognition.continuous = true; }
-
-        micBtn.onclick = async () => {
-            if (!isRecording) {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = []; transcriptionText = "";
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const reader = new FileReader();
-                    reader.readAsDataURL(audioBlob);
-                    reader.onloadend = async () => {
-                        const col = isGroup ? "group_messages" : "messages";
-                        await addDoc(collection(db, col), {
-                            chatId: activeChatId, senderId: myData.uid, senderName: myData.name,
-                            content: reader.result, type: 'audio', transcription: transcriptionText,
-                            timestamp: serverTimestamp()
-                        });
-                    };
-                };
-                mediaRecorder.start();
-                if(recognition) { recognition.onresult = e => { transcriptionText = e.results[e.results.length-1][0].transcript; }; recognition.start(); }
-                micBtn.classList.add('recording-blink'); isRecording = true;
-            } else {
-                mediaRecorder.stop(); if(recognition) recognition.stop();
-                micBtn.classList.remove('recording-blink'); isRecording = false;
-            }
-        };
-
-        // CORE
-        function loadAll() {
-            // Status (vencimento 24h)
-            const dayAgo = Date.now() - (24 * 60 * 60 * 1000);
-            onSnapshot(query(collection(db, "status"), orderBy("timestamp", "desc")), (snap) => {
-                const ui = document.getElementById('status-list-ui'); ui.innerHTML = '';
-                snap.forEach(d => {
-                    const s = d.data();
-                    const div = document.createElement('div'); div.className = 'status-circle';
-                    div.innerHTML = `<img src="${s.pic}">`;
-                    div.onclick = () => alert(`Status de ${s.name}: ${s.image}`); // Melhore aqui se quiser abrir imagem real
-                    ui.appendChild(div);
-                });
-            });
-
-            // Grupos e Chats
-            onSnapshot(collection(db, "groups"), (snap) => {
-                const ui = document.getElementById('global-list-ui'); ui.innerHTML = '<div class="section-label">Grupos e Chats</div>';
-                snap.forEach(d => {
-                    const g = d.data();
-                    if(g.members.includes(myData.uid)) {
-                        const item = document.createElement('div'); item.className = 'chat-item';
-                        item.innerHTML = `<img src="https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}"> <div><b>${g.name}</b></div>`;
-                        item.onclick = () => startChat(g, d.id, true); ui.appendChild(item);
-                    }
-                });
-            });
-        }
-
-        window.startChat = (target, id, groupMode) => {
-            isGroup = groupMode;
-            activeChatId = id || [myData.uid, target.uid].sort().join('_');
-            document.getElementById('header-ui').style.visibility = 'visible';
-            document.getElementById('target-name').innerText = target.name;
-            document.getElementById('target-pfp').src = target.pic || `https://api.dicebear.com/7.x/identicon/svg?seed=${target.name}`;
-            document.getElementById('group-controls').style.display = isGroup ? 'block' : 'none';
+        window.startChat = (name, pic, id, isGroup) => {
+            isGroupMode = isGroup;
+            activeChatId = isGroup ? id : [myData.uid, id].sort().join('_');
             
+            document.getElementById('header-ui').style.display = 'flex';
+            document.getElementById('target-name').innerText = name;
+            document.getElementById('target-pfp').src = pic;
+            document.getElementById('group-actions').style.display = isGroup ? 'block' : 'none';
+            
+            loadMessages();
+        };
+
+        function loadMessages() {
             if(unsubMessages) unsubMessages();
-            const col = isGroup ? "group_messages" : "messages";
+            const col = isGroupMode ? "group_messages" : "messages";
             const q = query(collection(db, col), where("chatId", "==", activeChatId), orderBy("timestamp", "asc"));
+            
             unsubMessages = onSnapshot(q, (snap) => {
                 const container = document.getElementById('messages-container');
                 container.innerHTML = '';
                 snap.forEach(d => {
                     const m = d.data(); const isOwn = m.senderId === myData.uid;
                     const div = document.createElement('div');
+                    div.id = `msg-${d.id}`;
                     div.style.alignSelf = isOwn ? 'flex-end' : 'flex-start';
-                    let html = `<div class="msg-bubble" style="background:${isOwn ? 'var(--msg-own)' : 'var(--msg-other)'}">`;
-                    if(isGroup && !isOwn) html += `<small style="color:var(--accent)">${m.senderName}</small><br>`;
-                    
-                    if(m.type === 'audio') {
-                        html += `<div class="audio-wrapper"><audio src="${m.content}" controls style="height:30px; width:180px"></audio><span class="speed-badge" onclick="toggleSpeed(this)">1x</span></div>`;
-                        if(m.transcription) html += `<small style="display:block; opacity:0.7; font-style:italic">"${m.transcription}"</small>`;
-                    } else { html += `<span>${m.content}</span>`; }
-                    
-                    html += `</div>`;
-                    div.innerHTML = html;
+                    div.onclick = () => askDeleteMsg(d.id, m.senderId);
+                    div.innerHTML = `<div class="msg-bubble" style="background:${isOwn ? 'var(--msg-own)' : 'var(--msg-other)'}">
+                        ${isGroupMode && !isOwn ? `<small style="color:var(--accent);display:block;margin-bottom:3px">${m.senderName}</small>` : ''}
+                        ${m.content}
+                    </div>`;
                     container.appendChild(div);
                 });
                 container.scrollTop = container.scrollHeight;
             });
-        };
+        }
+
+        function loadChats() {
+            // Grupos
+            onSnapshot(collection(db, "groups"), (snap) => {
+                const ui = document.getElementById('chat-list-ui');
+                ui.innerHTML = '<div style="padding:10px; color:gray; font-size:12px">CONVERSAS E GRUPOS</div>';
+                snap.forEach(d => {
+                    const g = d.data();
+                    if(g.members.includes(myData.uid)) {
+                        const item = document.createElement('div');
+                        item.className = 'chat-item';
+                        item.innerHTML = `<img src="https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}"> <div><b>${g.name}</b><br><small>Grupo</small></div>`;
+                        item.onclick = () => startChat(g.name, `https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}`, d.id, true);
+                        ui.appendChild(item);
+                    }
+                });
+            });
+        }
 
         window.handleSendMsg = async () => {
             const input = document.getElementById('msg-input');
             if(!input.value.trim() || !activeChatId) return;
-            const col = isGroup ? "group_messages" : "messages";
-            await addDoc(collection(db, col), { chatId: activeChatId, senderId: myData.uid, senderName: myData.name, content: input.value, type: 'text', timestamp: serverTimestamp() });
+            const col = isGroupMode ? "group_messages" : "messages";
+            await addDoc(collection(db, col), { 
+                chatId: activeChatId, 
+                senderId: myData.uid, 
+                senderName: myData.name, 
+                content: input.value, 
+                timestamp: serverTimestamp() 
+            });
             input.value = '';
         };
 
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-        window.findGhost = async () => {
-            const id = document.getElementById('search-id').value;
-            const s = await getDocs(query(collection(db, "users"), where("ghostId", "==", id)));
-            if(!s.empty) startChat(s.docs[0].data(), null, false);
-            closeModals();
-        };
     </script>
 </body>
 </html>
