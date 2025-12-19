@@ -3,60 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GhostChat Ultra Pro Max</title>
+    <title>GhostChat Final Elite</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --bg-main: #111b21; --bg-sidebar: #111b21; --bg-panel: #202c33;
             --bg-chat: #0b141a; --accent: #00a884; --text-main: #e9edef;
-            --text-dim: #8696a0; --msg-own: #005c4b; --msg-other: #202c33;
+            --text-dim: #8696a0; --msg-own: #005c4b; --msg-other: #202c33; --danger: #ea0038;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; overflow: hidden; }
         
         #app { display: flex; width: 100vw; height: 100vh; }
         .sidebar { width: 30%; min-width: 320px; background: var(--bg-sidebar); border-right: 1px solid #313d45; display: flex; flex-direction: column; }
+        
+        /* STATUS BAR SUPERIOR */
+        .status-bar { display: flex; gap: 12px; padding: 10px; overflow-x: auto; background: var(--bg-sidebar); border-bottom: 1px solid #222e35; scrollbar-width: none; }
+        .status-dot { min-width: 55px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .status-circle { width: 50px; height: 50px; border-radius: 50%; border: 3px solid var(--accent); padding: 2px; object-fit: cover; }
+        .status-name { font-size: 10px; color: var(--text-dim); margin-top: 4px; max-width: 55px; overflow: hidden; text-overflow: ellipsis; }
+
         .sidebar-header { background: var(--bg-panel); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; }
-        .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 2px solid var(--accent); }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; cursor: pointer; }
         .chat-list { flex: 1; overflow-y: auto; }
         .chat-item { padding: 12px; display: flex; align-items: center; cursor: pointer; border-bottom: 1px solid #222e35; gap: 12px; }
-        
-        .main-chat { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); position: relative; }
-        .chat-header { background: var(--bg-panel); padding: 10px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; }
-        #messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 80px; }
 
-        /* MENSAGENS */
+        .main-chat { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); position: relative; }
+        .chat-header { background: var(--bg-panel); padding: 10px 20px; display: flex; align-items: center; gap: 15px; }
+
+        /* PAINEL EDITAR GRUPO (INTEGRADO) */
+        #group-admin-panel { background: var(--bg-panel); border-bottom: 1px solid #444; padding: 15px; display: none; max-height: 300px; overflow-y: auto; }
+        .member-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #333; }
+
+        #messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 80px; }
         .msg { padding: 8px 12px; border-radius: 10px; color: white; max-width: 70%; position: relative; }
         .msg-me { align-self: flex-end; background: var(--msg-own); }
         .msg-other { align-self: flex-start; background: var(--msg-other); }
-        .views { font-size: 10px; float: right; margin-left: 5px; margin-top: 5px; color: #78e08f; }
 
-        /* AUDIO PLAYER */
-        .audio-wrapper { display: flex; align-items: center; gap: 8px; min-width: 220px; padding: 5px; }
+        .audio-wrapper { display: flex; align-items: center; gap: 10px; padding: 5px; }
         .speed-btn { background: #111b21; border: none; color: var(--accent); padding: 4px 8px; border-radius: 10px; font-weight: bold; cursor: pointer; }
 
-        /* INPUT BAR */
         .input-bar { background: var(--bg-panel); padding: 10px; display: flex; align-items: center; gap: 10px; position: absolute; bottom: 0; width: 100%; }
         .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px; border-radius: 20px; color: white; outline: none; }
         
-        /* EMOJIS */
-        .emoji-picker { position: absolute; bottom: 65px; left: 10px; background: var(--bg-panel); width: 320px; height: 250px; overflow-y: auto; display: none; grid-template-columns: repeat(7, 1fr); padding: 10px; border-radius: 10px; border: 1px solid #444; z-index: 1000; }
-        .emoji-picker span { cursor: pointer; font-size: 22px; text-align: center; padding: 5px; }
-
-        /* MODAIS */
+        .emoji-picker { position: absolute; bottom: 65px; left: 10px; background: var(--bg-panel); width: 300px; height: 250px; overflow-y: auto; display: none; grid-template-columns: repeat(6, 1fr); padding: 10px; border-radius: 10px; z-index: 1000; border: 1px solid #444; }
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 9999; }
-        .modal-full { width: 100vw; height: 100vh; background: var(--bg-main); flex-direction: column; padding: 40px; }
-        .modal-content { background: var(--bg-panel); padding: 20px; border-radius: 15px; width: 90%; max-width: 450px; }
-        .btn-action { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; margin-top: 10px; font-weight: bold; }
-
-        /* STATUS */
-        .status-viewer { height: 100%; width: 100%; display: flex; align-items: center; justify-content: center; background: black; position: relative; }
-        .status-img { max-height: 90vh; max-width: 100%; border-radius: 10px; }
-
-        .rec-active { color: #ff3b30 !important; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        .modal-content { background: var(--bg-panel); padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; }
+        .btn-action { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .hidden { display: none !important; }
-        .icon-btn { background: none; border: none; color: var(--text-dim); font-size: 22px; cursor: pointer; }
+        .icon-btn { background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -70,90 +65,60 @@
         <div class="sidebar">
             <div class="sidebar-header">
                 <img src="" id="my-pfp" class="avatar" onclick="openProfile(true)">
-                <div style="display:flex; gap:18px">
-                    <button class="icon-btn" onclick="openStatus()"><i class="fa-solid fa-circle-notch"></i></button>
+                <div style="display:flex; gap:15px">
+                    <button class="icon-btn" onclick="openModal('modal-post-status')"><i class="fa-solid fa-plus"></i></button>
                     <button class="icon-btn" onclick="openModal('modal-group')"><i class="fa-solid fa-users"></i></button>
                     <button class="icon-btn" onclick="openModal('modal-add')"><i class="fa-solid fa-user-plus"></i></button>
                 </div>
             </div>
+            <div class="status-bar" id="status-circles"></div>
             <div class="chat-list" id="chat-list-ui"></div>
         </div>
 
         <div class="main-chat">
-            <div id="chat-header-ui" class="chat-header" style="display:none" onclick="handleHeaderClick()">
-                <img src="" id="target-pic" class="avatar">
-                <div style="flex:1">
+            <div id="chat-header-ui" class="chat-header" style="display:none">
+                <img src="" id="target-pic" class="avatar" onclick="handleHeaderClick()">
+                <div style="flex:1" onclick="handleHeaderClick()">
                     <h4 id="target-name">Nome</h4>
-                    <small id="target-info" style="color:var(--text-dim)">Clique para ver info</small>
                 </div>
-                <button class="icon-btn" onclick="event.stopPropagation(); blockUser()"><i class="fa-solid fa-ban"></i></button>
+                <button id="delete-chat-btn" class="icon-btn hidden" onclick="deleteCurrentGroup()" style="color:var(--danger)"><i class="fa-solid fa-trash"></i></button>
+                <button class="icon-btn" onclick="closeChat()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="group-admin-panel">
+                <h4 style="margin-bottom:10px">Editar Grupo</h4>
+                <input type="text" id="edit-g-name" placeholder="Novo nome" style="width:70%; padding:5px; background:#111; color:white; border:none">
+                <button onclick="saveGroupName()" class="btn-action" style="width:25%; padding:5px">Salvar</button>
+                <h5 style="margin-top:15px">Membros:</h5>
+                <div id="members-list-scroll"></div>
             </div>
 
             <div id="messages-container"></div>
-            
             <div class="emoji-picker" id="emoji-picker"></div>
 
             <div class="input-bar">
                 <button class="icon-btn" onclick="toggleEmoji()"><i class="fa-regular fa-face-smile"></i></button>
                 <label for="chat-file" class="icon-btn"><i class="fa-solid fa-paperclip"></i></label>
                 <input type="file" id="chat-file" hidden onchange="uploadToChat(this)">
-                
                 <input type="text" id="msg-input" placeholder="Mensagem..." onkeypress="if(event.key==='Enter')sendText()">
-                
                 <button id="audio-btn" class="icon-btn"><i class="fa-solid fa-microphone"></i></button>
                 <button onclick="sendText()" class="icon-btn" style="color:var(--accent)"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
 
-    <div id="modal-status" class="modal">
-        <div class="modal-content">
-            <h3>Status</h3>
-            <div id="status-list" style="max-height: 200px; overflow-y: auto; margin: 10px 0;"></div>
-            <hr style="opacity:0.2; margin:10px 0">
-            <label>Postar Novo Status:</label>
-            <input type="file" id="status-input" style="margin:10px 0" onchange="postStatus(this)">
-            <button class="btn-action" style="background:#444" onclick="closeModals()">Fechar</button>
-        </div>
-    </div>
-
-    <div id="modal-profile" class="modal"><div class="modal-content" style="padding:0; overflow:hidden">
-        <div id="p-banner" style="height:100px; background:var(--accent); background-size:cover"></div>
-        <img src="" id="p-avatar" style="width:80px; height:80px; border:4px solid var(--bg-panel); border-radius:50%; margin-top:-40px; margin-left:15px; background:#333">
-        <div style="padding:15px">
-            <h2 id="p-name">Nome</h2>
-            <p id="p-bio" style="color:gray; margin:10px 0"></p>
-            <div id="edit-profile-fields" class="hidden">
-                <input type="text" id="edit-name" placeholder="Nome" style="width:100%; padding:8px; margin-bottom:10px">
-                <input type="text" id="edit-bio" placeholder="Bio" style="width:100%; padding:8px; margin-bottom:10px">
-                <label>Foto:</label> <input type="file" onchange="updateProfileMedia(this, 'pic')"><br>
-                <label>Banner:</label> <input type="file" onchange="updateProfileMedia(this, 'banner')">
-                <button class="btn-action" onclick="saveProfile()">Salvar</button>
-            </div>
-            <button class="btn-action" style="background:#444" onclick="closeModals()">Fechar</button>
-        </div>
+    <div id="modal-post-status" class="modal"><div class="modal-content">
+        <h3>Postar Status</h3>
+        <input type="text" id="status-title" placeholder="Título/Legenda" style="width:100%; padding:10px; margin:10px 0; background:#111; color:white; border:none">
+        <input type="file" id="status-file-input">
+        <button class="btn-action" onclick="postStatus()" style="margin-top:10px">Postar</button>
+        <button class="btn-action" style="background:#444" onclick="closeModals()">Cancelar</button>
     </div></div>
 
-    <div id="modal-edit-group" class="modal modal-full">
-        <h1>Gerenciar Grupo</h1>
-        <div style="width:100%; max-width:600px; margin-top:20px">
-            <h3>Membros:</h3>
-            <div id="group-members-list" style="margin:20px 0; background:var(--bg-panel); border-radius:10px; padding:10px"></div>
-            <button class="btn-action" onclick="closeModals()">Voltar para o Chat</button>
-        </div>
-    </div>
-
-    <div id="modal-group" class="modal"><div class="modal-content">
-        <h3>Novo Grupo</h3>
-        <input type="text" id="g-name" placeholder="Nome do Grupo" style="width:100%; padding:10px; margin:10px 0">
-        <input type="file" id="g-pic-input">
-        <button class="btn-action" onclick="createGroup()">Criar</button>
-    </div></div>
-
-    <div id="modal-add" class="modal"><div class="modal-content">
-        <h3>Adicionar por ID</h3>
-        <input type="text" id="search-id" placeholder="Ex: 5542" style="width:100%; padding:10px; margin:15px 0">
-        <div id="search-res"></div>
+    <div id="modal-view-status" class="modal" onclick="closeModals()"><div class="modal-content" style="background:transparent; text-align:center" onclick="event.stopPropagation()">
+        <h3 id="view-status-name" style="margin-bottom:10px"></h3>
+        <img src="" id="view-status-img" style="max-width:100%; max-height:70vh; border-radius:10px">
+        <p id="view-status-title" style="margin-top:10px; font-size:18px"></p>
     </div></div>
 
     <script type="module">
@@ -176,7 +141,6 @@
 
         let myData = {}, activeChatId = null, currentTarget = null, isRecording = false, mediaRecorder, chunks = [];
 
-        // LOGIN
         document.getElementById('login-btn').onclick = () => signInAnonymously(auth);
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -184,17 +148,18 @@
                 if (snap.exists()) myData = snap.data();
                 else {
                     const gid = Math.floor(1000+Math.random()*9000).toString();
-                    myData = { uid: user.uid, ghostId: gid, name: `Ghost#${gid}`, pic: `https://api.dicebear.com/7.x/bottts/svg?seed=${gid}`, bio: "Ghosting...", banner: "" };
+                    myData = { uid: user.uid, ghostId: gid, name: `Ghost#${gid}`, pic: `https://api.dicebear.com/7.x/bottts/svg?seed=${gid}`, creator: true };
                     await setDoc(doc(db, "users", user.uid), myData);
                 }
                 document.getElementById('my-pfp').src = myData.pic;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
                 loadContacts();
+                loadStatusCircles();
             }
         });
 
-        // AUDIO FIX (BLOB URL PARA DAR PLAY)
+        // AUDIO FIX (BLOB RECONSTRUCTION)
         const audioBtn = document.getElementById('audio-btn');
         audioBtn.onclick = async () => {
             if (!isRecording) {
@@ -214,125 +179,74 @@
             }
         };
 
-        window.changeSpeed = (btn, aid) => {
-            const a = document.getElementById(aid);
-            a.playbackRate = a.playbackRate === 1 ? 1.5 : (a.playbackRate === 1.5 ? 2 : 1);
-            btn.innerText = a.playbackRate + 'x';
-        };
-
-        // MENSAGENS E EMOJIS
-        window.sendText = () => {
-            const v = document.getElementById('msg-input').value;
-            if(!v.trim()) return;
-            sendMsg(v, 'text');
-            document.getElementById('msg-input').value = "";
-        };
-
-        async function sendMsg(content, type) {
-            if(!activeChatId) return;
-            await addDoc(collection(db, "messages"), {
-                chatId: activeChatId, senderId: myData.uid, content, type, timestamp: serverTimestamp(), views: 0
-            });
-        }
-
-        const emojis = "😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😜🤪😝🤑🤗🤭🤫🤔😐😑😶😏😒🙄😬🤥😌😔😪🤤😴😷🤒🤕🤢🤮🤧😵🤯🤠🥳😎🤓🧐😕😟🙁☹️😮😯😲😳🥺😦😧😨😰😥😢😭😤😠😡🤬😈👿💀☠️👻👽🤖🎃👋🤚✋🖐️✌️🤞🤟🤘🤙👌🤌🤏✊👊🤛🤜👍👎✍️🙌👏🫶🙏💪🦾🦿❤️🧡💛💚💙💜🖤🤍🤎💔❣️💕💞💓💗💖💘💯";
-        const picker = document.getElementById('emoji-picker');
-        [...emojis].forEach(e => {
-            const s = document.createElement('span'); s.innerText = e;
-            s.onclick = () => document.getElementById('msg-input').value += e;
-            picker.appendChild(s);
-        });
-        window.toggleEmoji = () => picker.style.display = picker.style.display === 'grid' ? 'none' : 'grid';
-
-        // STATUS
-        window.openStatus = () => {
-            onSnapshot(collection(db, "status"), (snap) => {
-                const list = document.getElementById('status-list');
-                list.innerHTML = "";
-                snap.forEach(d => {
-                    const s = d.data();
-                    list.innerHTML += `<div class="chat-item" onclick="window.open('${s.url}')"><img src="${s.pic}" class="avatar"> <b>${s.name}</b></div>`;
+        // STATUS COM BOLINHAS E TITULO
+        window.postStatus = () => {
+            const file = document.getElementById('status-file-input').files[0];
+            const title = document.getElementById('status-title').value;
+            if(!file) return;
+            const r = new FileReader(); r.readAsDataURL(file);
+            r.onload = async () => {
+                await setDoc(doc(db, "status", myData.uid), { 
+                    url: r.result, title, name: myData.name, pic: myData.pic, time: Date.now() 
                 });
-            });
-            openModal('modal-status');
-        };
-
-        window.postStatus = (el) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(el.files[0]);
-            reader.onload = async () => {
-                await setDoc(doc(db, "status", myData.uid), { url: reader.result, name: myData.name, pic: myData.pic, time: Date.now() });
-                alert("Status Postado!");
+                closeModals();
             };
         };
 
-        // PERFIL E GERENCIAR GRUPO
+        function loadStatusCircles() {
+            onSnapshot(collection(db, "status"), (snap) => {
+                const bar = document.getElementById('status-circles');
+                bar.innerHTML = "";
+                snap.forEach(d => {
+                    const s = d.data();
+                    const dot = document.createElement('div');
+                    dot.className = 'status-dot';
+                    dot.innerHTML = `<img src="${s.pic}" class="status-circle"><span class="status-name">${s.name}</span>`;
+                    dot.onclick = () => {
+                        document.getElementById('view-status-img').src = s.url;
+                        document.getElementById('view-status-name').innerText = s.name;
+                        document.getElementById('view-status-title').innerText = s.title;
+                        openModal('modal-view-status');
+                    };
+                    bar.appendChild(dot);
+                });
+            });
+        }
+
+        // GRUPO E ADMIN
         window.handleHeaderClick = () => {
             if(currentTarget.isGroup) {
+                const panel = document.getElementById('group-admin-panel');
+                panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
                 loadGroupMembers();
-                openModal('modal-edit-group');
-            } else {
-                openProfile(false);
             }
         };
 
         async function loadGroupMembers() {
-            const list = document.getElementById('group-members-list');
-            list.innerHTML = "Carregando membros...";
-            // Simulação de lista de membros (para um sistema real, você salvaria os UIDs dos membros no doc do grupo)
+            const list = document.getElementById('members-list-scroll');
             const snap = await getDocs(collection(db, "users"));
             list.innerHTML = "";
-            snap.forEach(d => {
-                const u = d.data();
-                const div = document.createElement('div');
-                div.className = 'chat-item';
-                div.innerHTML = `<img src="${u.pic}" class="avatar"> <div style="flex:1">${u.name}</div> 
-                                <button class="btn-action" style="width:80px; background:red; margin:0" onclick="alert('Banido!')">Banir</button>`;
-                list.appendChild(div);
+            snap.forEach(uDoc => {
+                const u = uDoc.data();
+                list.innerHTML += `<div class="member-row">
+                    <span>${u.name}</span>
+                    <button class="icon-btn" style="color:red" onclick="alert('Banido')"><i class="fa-solid fa-ban"></i></button>
+                </div>`;
             });
         }
 
-        window.openProfile = async (isMe) => {
-            const u = isMe ? myData : (await getDoc(doc(db, "users", currentTarget.uid))).data();
-            document.getElementById('p-name').innerText = u.name;
-            document.getElementById('p-bio').innerText = u.bio;
-            document.getElementById('p-avatar').src = u.pic;
-            document.getElementById('p-banner').style.backgroundImage = `url(${u.banner})`;
-            document.getElementById('edit-profile-fields').classList.toggle('hidden', !isMe);
-            openModal('modal-profile');
+        window.deleteCurrentGroup = async () => {
+            if(confirm("Deletar este grupo para sempre?")) {
+                await deleteDoc(doc(db, "users", myData.uid, "contacts", currentTarget.uid));
+                location.reload();
+            }
         };
 
-        window.updateProfileMedia = (el, type) => {
-            const r = new FileReader(); r.readAsDataURL(el.files[0]);
-            r.onload = () => { if(type==='pic') myData.pic = r.result; else myData.banner = r.result; };
-        };
-
-        window.saveProfile = async () => {
-            myData.name = document.getElementById('edit-name').value || myData.name;
-            myData.bio = document.getElementById('edit-bio').value || myData.bio;
-            await updateDoc(doc(db, "users", myData.uid), myData);
-            location.reload();
-        };
-
-        // CHATS E VISUALIZAÇÕES
-        function loadContacts() {
-            onSnapshot(collection(db, "users", myData.uid, "contacts"), (snap) => {
-                const ui = document.getElementById('chat-list-ui'); ui.innerHTML = "";
-                snap.forEach(d => {
-                    const c = d.data();
-                    const div = document.createElement('div');
-                    div.className = 'chat-item';
-                    div.innerHTML = `<img src="${c.pic}" class="avatar"> <b>${c.name}</b>`;
-                    div.onclick = () => {
-                        activeChatId = c.isGroup ? c.uid : [myData.uid, c.uid].sort().join('_');
-                        currentTarget = c;
-                        document.getElementById('chat-header-ui').style.display = 'flex';
-                        document.getElementById('target-name').innerText = c.name;
-                        document.getElementById('target-pic').src = c.pic;
-                        loadMessages();
-                    };
-                    ui.appendChild(div);
-                });
+        // MENSAGENS E PLAY AUDIO
+        async function sendMsg(content, type) {
+            if(!activeChatId) return;
+            await addDoc(collection(db, "messages"), {
+                chatId: activeChatId, senderId: myData.uid, content, type, timestamp: serverTimestamp()
             });
         }
 
@@ -347,12 +261,12 @@
                     const div = document.createElement('div');
                     div.className = `msg ${isMe ? 'msg-me' : 'msg-other'}`;
                     
-                    if(m.type === 'text') div.innerHTML = `${m.content} <span class="views"><i class="fa-solid fa-check-double"></i></span>`;
+                    if(m.type === 'text') div.innerText = m.content;
                     else if(m.type === 'audio') {
                         const aid = "aud_"+d.id;
                         div.innerHTML = `<div class="audio-wrapper">
-                            <button class="speed-btn" onclick="changeSpeed(this, '${aid}')">1x</button>
-                            <audio id="${aid}" src="${m.content}" controls style="height:30px; filter:invert(1)"></audio>
+                            <button class="speed-btn" onclick="document.getElementById('${aid}').playbackRate = (document.getElementById('${aid}').playbackRate >= 2 ? 1 : document.getElementById('${aid}').playbackRate + 0.5); this.innerText = document.getElementById('${aid}').playbackRate + 'x'">1x</button>
+                            <audio id="${aid}" src="${m.content}" controls style="height:35px; filter:invert(1)"></audio>
                         </div>`;
                     }
                     cont.appendChild(div);
@@ -361,37 +275,33 @@
             });
         }
 
-        // GRUPO E BUSCA
-        window.createGroup = async () => {
-            const name = document.getElementById('g-name').value;
-            const file = document.getElementById('g-pic-input').files[0];
-            const reader = new FileReader();
-            const gId = "group_" + Date.now();
-            const create = (pic) => {
-                setDoc(doc(db, "users", myData.uid, "contacts", gId), { uid: gId, name, pic, isGroup: true });
-                closeModals();
-            };
-            if(file) { reader.readAsDataURL(file); reader.onload = () => create(reader.result); }
-            else create('https://cdn-icons-png.flaticon.com/512/615/615075.png');
-        };
-
-        document.getElementById('search-id').oninput = async (e) => {
-            const q = query(collection(db, "users"), where("ghostId", "==", e.target.value));
-            const snap = await getDocs(q);
-            const res = document.getElementById('search-res'); res.innerHTML = "";
-            snap.forEach(d => {
-                const u = d.data();
-                res.innerHTML = `<button class="btn-action" onclick="saveContact('${u.uid}','${u.name}','${u.pic}')">Adicionar ${u.name}</button>`;
+        function loadContacts() {
+            onSnapshot(collection(db, "users", myData.uid, "contacts"), (snap) => {
+                const ui = document.getElementById('chat-list-ui'); ui.innerHTML = "";
+                snap.forEach(d => {
+                    const c = d.data();
+                    const div = document.createElement('div');
+                    div.className = 'chat-item';
+                    div.innerHTML = `<img src="${c.pic}" class="avatar"> <b>${c.name}</b>`;
+                    div.onclick = () => {
+                        activeChatId = c.isGroup ? c.uid : [myData.uid, c.uid].sort().join('_');
+                        currentTarget = c;
+                        document.getElementById('chat-header-ui').style.display = 'flex';
+                        document.getElementById('target-name').innerText = c.name;
+                        document.getElementById('target-pic').src = c.pic;
+                        document.getElementById('delete-chat-btn').classList.toggle('hidden', !c.isGroup);
+                        loadMessages();
+                    };
+                    ui.appendChild(div);
+                });
             });
-        };
-
-        window.saveContact = async (uid, name, pic) => {
-            await setDoc(doc(db, "users", myData.uid, "contacts", uid), { uid, name, pic, isGroup: false });
-            closeModals();
-        };
+        }
 
         window.openModal = id => document.getElementById(id).style.display = 'flex';
         window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        window.toggleEmoji = () => { const p = document.getElementById('emoji-picker'); p.style.display = p.style.display === 'grid' ? 'none' : 'grid'; };
+        const emojis = "😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😜🤪😝🤑🤗🤭🤫🤔😐😑😶😏😒🙄😬🤥😌😔😪🤤😴😷🤒🤕🤢🤮🤧😵🤯🤠🥳😎🤓🧐😕😟🙁☹️😮😯😲😳🥺😦😧😨😰😥😢😭😤😠😡🤬😈👿💀☠️👻👽🤖🎃";
+        [...emojis].forEach(e => { const s = document.createElement('span'); s.innerText = e; s.onclick = () => document.getElementById('msg-input').value += e; document.getElementById('emoji-picker').appendChild(s); });
     </script>
 </body>
 </html>
