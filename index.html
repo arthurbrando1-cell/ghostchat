@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GhostChat - Status Sound Fix</title>
+    <title>GhostChat Pro - Status Clean</title>
     <style>
         :root {
             --bg-main: #111b21; --bg-sidebar: #111b21; --bg-panel: #202c33;
@@ -21,28 +21,28 @@
         .sidebar-header { background: var(--bg-panel); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; height: 60px; }
         .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1.5px solid var(--accent); }
         
+        /* Lista de Status */
+        .status-bar { padding: 10px 16px; display: flex; gap: 12px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.1); background: #111b21; scrollbar-width: none; }
+        .status-thumb { min-width: 58px; height: 58px; border-radius: 50%; border: 2px solid var(--accent); padding: 2px; cursor: pointer; position: relative; flex-shrink: 0; }
+        .status-thumb img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .status-thumb.add-btn::after { content: "+"; position: absolute; bottom: 0; right: 0; background: var(--accent); width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 2px solid var(--bg-main); }
+
         .chat-list { flex: 1; overflow-y: auto; }
         .chat-item { display: flex; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
         .chat-item:hover { background: #2a3942; }
         .chat-item img { width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; }
 
-        /* Status Section */
-        .status-bar { padding: 10px 16px; display: flex; gap: 10px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.1); background: #111b21; }
-        .status-thumb { min-width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--accent); padding: 2px; cursor: pointer; position: relative; }
-        .status-thumb img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-        .status-thumb.add-btn::after { content: "+"; position: absolute; bottom: 0; right: 0; background: var(--accent); width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 2px solid var(--bg-main); }
-
         /* Main Chat */
-        .main-chat { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); background-size: cover; background-position: center; position: relative; }
+        .main-chat { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); position: relative; }
         .chat-header { background: var(--bg-panel); padding: 10px 16px; display: flex; align-items: center; height: 60px; z-index: 10; justify-content: space-between; }
         #messages-container { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 8px; }
         
-        /* Viewer de Status */
+        /* Viewer de Status (Instagram Style) */
         #status-viewer { position: fixed; inset: 0; background: black; z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        .status-content { position: relative; width: 100%; max-width: 450px; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .status-content { position: relative; width: 100%; max-width: 450px; height: 100%; display: flex; align-items: center; justify-content: center; background: #000; }
         .status-media-box { width: 100%; height: 100%; object-fit: contain; }
-        .status-overlay { position: absolute; top: 0; width: 100%; padding: 40px 20px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); display: flex; align-items: center; gap: 10px; z-index: 10; }
-        .status-title-text { position: absolute; bottom: 80px; width: 100%; text-align: center; padding: 20px; font-size: 18px; text-shadow: 2px 2px 4px rgba(0,0,0,1); z-index: 10; color: white; }
+        .status-overlay { position: absolute; top: 0; width: 100%; padding: 45px 20px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); display: flex; align-items: center; gap: 10px; z-index: 10; }
+        .status-title-text { position: absolute; bottom: 80px; width: 100%; text-align: center; padding: 20px; font-size: 19px; text-shadow: 2px 2px 5px rgba(0,0,0,1); z-index: 10; color: white; font-weight: 500; }
         .status-progress { position: absolute; top: 15px; left: 10px; right: 10px; height: 3px; background: rgba(255,255,255,0.3); z-index: 20; border-radius: 10px; overflow: hidden; }
         .status-progress-bar { height: 100%; background: white; width: 0%; }
 
@@ -51,10 +51,12 @@
         .icon-btn { fill: var(--text-dim); cursor: pointer; padding: 5px; display: flex; align-items: center; transition: 0.2s; }
         .icon-btn:hover { fill: var(--accent); }
 
+        /* Modais */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: var(--bg-panel); padding: 30px; border-radius: 25px; width: 90%; max-width: 400px; text-align: center; }
-        .modal-content input { width: 100%; padding: 12px; background: #111b21; border: 1px solid #3b4a54; color: white; border-radius: 10px; margin-bottom: 10px; outline: none; }
-        .btn-action { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
+        .modal-content input { width: 100%; padding: 12px; background: #111b21; border: 1px solid #3b4a54; color: white; border-radius: 10px; margin-bottom: 12px; outline: none; }
+        .btn-action { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-action:hover { opacity: 0.8; }
 
         .active { display: flex !important; }
         .hidden { display: none !important; }
@@ -65,7 +67,7 @@
     <div id="login-screen" style="position:fixed; inset:0; background:var(--bg-main); z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div style="font-size: 80px; margin-bottom: 10px;">👻</div>
         <h1 style="margin-bottom: 30px;">GhostChat <span style="color:var(--accent)">PRO</span></h1>
-        <button onclick="handleLogin()" class="btn-action" style="width: auto; padding: 15px 60px; border-radius: 50px;">ENTRAR</button>
+        <button onclick="handleLogin()" class="btn-action" style="width: auto; padding: 15px 60px; border-radius: 50px;">ENTRAR NO CHAT</button>
     </div>
 
     <div id="app" class="hidden">
@@ -91,7 +93,7 @@
             <div class="chat-list" id="chat-list-ui"></div>
         </div>
 
-        <div class="main-chat" id="chat-bg-area">
+        <div class="main-chat">
             <div class="chat-header" id="header-ui" style="visibility:hidden">
                 <div style="display: flex; align-items: center;">
                     <img src="" id="target-pfp" class="avatar" style="margin-right: 15px;">
@@ -117,33 +119,31 @@
             </div>
             <div id="sv-media-container" style="width:100%; height:100%;"></div>
             <div class="status-title-text" id="sv-title"></div>
-            <div id="yt-player-container" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;"></div>
         </div>
-        <button onclick="closeStatus()" style="position:fixed; top:20px; right:20px; background:rgba(0,0,0,0.5); border:none; color:white; font-size:30px; cursor:pointer; width:40px; height:40px; border-radius:50%; z-index:100;">&times;</button>
+        <button onclick="closeStatus()" style="position:fixed; top:20px; right:20px; background:rgba(0,0,0,0.5); border:none; color:white; font-size:30px; cursor:pointer; width:45px; height:45px; border-radius:50%; z-index:100;">&times;</button>
     </div>
 
     <div id="modal-status-create" class="modal">
         <div class="modal-content">
             <h3>Novo Status</h3>
-            <input type="text" id="st-title" placeholder="Legenda...">
+            <input type="text" id="st-title" placeholder="Escreva uma legenda...">
             <input type="text" id="st-media" placeholder="Link da Imagem ou Vídeo (.mp4)">
-            <input type="text" id="st-yt" placeholder="Link do YouTube (Para Música)">
-            <button class="btn-action" onclick="postStatus()">POSTAR STATUS</button>
+            <button class="btn-action" onclick="postStatus()">POSTAR AGORA</button>
             <button onclick="closeModals()" style="background:none; border:none; color:var(--text-dim); margin-top:15px; cursor:pointer;">CANCELAR</button>
         </div>
     </div>
 
     <div id="modal-profile" class="modal"><div class="modal-content">
         <h3>Editar Perfil</h3>
-        <input type="text" id="in-name" placeholder="Nome">
-        <input type="text" id="in-pic" placeholder="URL da Foto">
-        <button class="btn-action" onclick="saveProfile()">SALVAR ALTERAÇÕES</button>
+        <input type="text" id="in-name" placeholder="Seu Nome">
+        <input type="text" id="in-pic" placeholder="URL da Foto de Perfil">
+        <button class="btn-action" onclick="saveProfile()">SALVAR</button>
     </div></div>
 
     <div id="modal-add" class="modal"><div class="modal-content">
         <h3>Adicionar Amigo</h3>
-        <input type="text" id="search-id" placeholder="Digite o ID de 4 dígitos">
-        <button class="btn-action" onclick="findGhost()">BUSCAR FANTASMA</button>
+        <input type="text" id="search-id" placeholder="ID de 4 dígitos">
+        <button class="btn-action" onclick="findGhost()">BUSCAR</button>
     </div></div>
 
     <script type="module">
@@ -188,30 +188,20 @@
             }
         });
 
-        // Função para extrair ID do YouTube de qualquer link
-        function extractYTId(url) {
-            if (!url) return null;
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\/shorts\/)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
-        }
-
+        // --- LÓGICA DE STATUS ---
         window.postStatus = async () => {
             const title = document.getElementById('st-title').value;
             const media = document.getElementById('st-media').value;
-            const yt = document.getElementById('st-yt').value;
-            const ytId = extractYTId(yt);
 
-            if(!media) return alert("Coloque um link de imagem ou vídeo!");
+            if(!media) return alert("Coloque um link de mídia!");
 
             await addDoc(collection(db, "status"), {
                 uid: myData.uid, name: myData.name, pic: myData.pic,
-                title, media, ytId, timestamp: serverTimestamp()
+                title, media, timestamp: serverTimestamp()
             });
             
             document.getElementById('st-title').value = '';
             document.getElementById('st-media').value = '';
-            document.getElementById('st-yt').value = '';
             closeModals();
         };
 
@@ -238,40 +228,30 @@
             viewer.style.display = 'flex';
             document.getElementById('sv-pfp').src = s.pic;
             document.getElementById('sv-name').innerText = s.name;
-            document.getElementById('sv-title').innerText = s.title;
+            document.getElementById('sv-title').innerText = s.title || "";
             
-            const isVideo = s.media.toLowerCase().endsWith('.mp4');
-            mediaBox.innerHTML = isVideo ? `<video src="${s.media}" autoplay muted class="status-media-box"></video>` : `<img src="${s.media}" class="status-media-box">`;
+            const isVideo = s.media.toLowerCase().includes('.mp4');
+            mediaBox.innerHTML = isVideo ? `<video src="${s.media}" autoplay class="status-media-box"></video>` : `<img src="${s.media}" class="status-media-box">`;
             
-            // Se tiver vídeo mp4, tiramos o mute se o navegador deixar
-            if(isVideo) mediaBox.querySelector('video').muted = false;
-
-            // MÚSICA YOUTUBE - AJUSTE DE SOM
-            if(s.ytId) {
-                // Adicionamos mute=0 e o origin para tentar forçar a saída de som
-                document.getElementById('yt-player-container').innerHTML = 
-                `<iframe src="https://www.youtube.com/embed/${s.ytId}?autoplay=1&mute=0&enablejsapi=1&origin=${window.location.origin}" allow="autoplay; encrypted-media"></iframe>`;
-            }
-
+            // Barra de progresso reset
             bar.style.transition = 'none';
             bar.style.width = '0%';
             setTimeout(() => {
-                bar.style.transition = 'width 7s linear';
+                bar.style.transition = 'width 6s linear';
                 bar.style.width = '100%';
             }, 100);
 
             clearTimeout(statusTimer);
-            statusTimer = setTimeout(closeStatus, 7000);
+            statusTimer = setTimeout(closeStatus, 6000);
         };
 
         window.closeStatus = () => {
             document.getElementById('status-viewer').style.display = 'none';
-            document.getElementById('yt-player-container').innerHTML = '';
             document.getElementById('sv-media-container').innerHTML = '';
             clearTimeout(statusTimer);
         };
 
-        // --- CHAT ---
+        // --- LÓGICA DE CHAT ---
         window.handleSendMsg = async () => {
             const inp = document.getElementById('msg-input');
             if(inp.value.trim() && activeChatId) {
@@ -318,7 +298,7 @@
                     const div = document.createElement('div');
                     div.style.alignSelf = m.senderId === myData.uid ? 'flex-end' : 'flex-start';
                     div.style.background = m.senderId === myData.uid ? 'var(--msg-own)' : 'var(--msg-other)';
-                    div.style.padding = '10px'; div.style.borderRadius = '10px'; div.style.maxWidth = '80%';
+                    div.style.padding = '10px 14px'; div.style.borderRadius = '12px'; div.style.maxWidth = '80%';
                     div.innerText = m.content;
                     cont.appendChild(div);
                 });
@@ -331,14 +311,16 @@
         window.findGhost = async () => {
             const id = document.getElementById('search-id').value;
             const s = await getDocs(query(collection(db, "users"), where("ghostId", "==", id), limit(1)));
-            if(!s.empty) startChat(s.docs[0].data()); else alert("Fantasma não encontrado!");
+            if(!s.empty) startChat(s.docs[0].data()); else alert("Usuário não encontrado.");
             closeModals();
         };
         window.saveProfile = async () => {
             const n = document.getElementById('in-name').value;
             const p = document.getElementById('in-pic').value;
-            await setDoc(doc(db, "users", auth.currentUser.uid), { name: n, pic: p }, { merge: true });
-            location.reload();
+            if(n && p) {
+                await setDoc(doc(db, "users", auth.currentUser.uid), { name: n, pic: p }, { merge: true });
+                location.reload();
+            }
         };
     </script>
 </body>
