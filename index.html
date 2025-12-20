@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GhostChat Pro - Status & Contatos</title>
+    <title>GhostChat Pro - Ultimate</title>
     <style>
         :root {
             --bg-main: #111b21; --bg-sidebar: #111b21; --bg-panel: #202c33;
@@ -25,7 +25,7 @@
         .nav-item:hover { background: rgba(255,255,255,0.02); }
         .nav-item.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-        .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1.5px solid transparent; transition: 0.2s; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1.5px solid transparent; transition: 0.2s; background: #333; }
         .avatar:hover { opacity: 0.8; }
         .has-status { border-color: var(--accent); padding: 1px; }
 
@@ -34,11 +34,8 @@
         .list-item:hover { background: #2a3942; }
         .list-item img { width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; object-fit: cover; }
         
-        /* Specific Styles */
+        /* Status Styles */
         .status-ring { border: 2px solid var(--story-ring); padding: 2px; }
-        .status-seen { border-color: var(--story-seen); }
-        
-        .contact-action { margin-left: auto; color: var(--accent); font-size: 13px; border: 1px solid var(--accent); padding: 4px 10px; border-radius: 15px; }
 
         /* Chat Principal */
         .main-chat { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); background-size: cover; background-position: center; position: relative; }
@@ -53,26 +50,39 @@
         .own .msg-bubble { background: var(--msg-own); border-bottom-right-radius: 2px; }
         .other .msg-bubble { background: var(--msg-other); border-bottom-left-radius: 2px; }
         .msg-time { font-size: 10px; color: rgba(255,255,255,0.6); display: block; text-align: right; margin-top: 4px; }
-        .deleted-note { font-style: italic; color: var(--text-dim); font-size: 13px; opacity: 0.7; }
+        .chat-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; display: block; }
+        
+        /* Audio Player Style */
+        .audio-player { display: flex; align-items: center; gap: 10px; min-width: 200px; padding: 5px 0; }
+        .play-btn { background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 20px; width: 30px; }
+        .audio-track { flex: 1; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; position: relative; overflow: hidden; }
+        .audio-progress { height: 100%; background: var(--text-main); width: 0%; transition: width 0.1s; }
+        .speed-btn { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 2px 6px; font-size: 10px; color: white; border: none; cursor: pointer; width: 35px; }
 
         /* Barra de Mensagem */
         .input-bar { background: var(--bg-panel); padding: 8px 15px; display: flex; align-items: center; gap: 10px; z-index: 10; }
         .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
         .icon-btn { fill: var(--text-dim); cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .icon-btn:hover { fill: var(--text-main); background: rgba(255,255,255,0.05); border-radius: 50%; }
+        .icon-btn.recording { fill: var(--danger); animation: pulse 1s infinite; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         /* Modais */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .modal-content { background: var(--bg-panel); padding: 30px; border-radius: 25px; width: 100%; max-width: 400px; text-align: center; position: relative; }
         
         /* Story Viewer */
-        .story-viewer { width: 100%; height: 100%; max-width: 500px; display: flex; flex-direction: column; justify-content: center; }
+        .story-viewer { width: 100%; height: 100%; max-width: 500px; display: flex; flex-direction: column; justify-content: center; position: relative; }
         .story-img { max-width: 100%; max-height: 80vh; border-radius: 10px; margin-bottom: 20px; }
-        .story-bar { height: 3px; background: rgba(255,255,255,0.2); margin-bottom: 10px; border-radius: 3px; overflow: hidden; }
+        .story-top-overlay { position: absolute; top: 0; left: 0; right: 0; padding: 15px; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); display: flex; flex-direction: column; gap: 10px; z-index: 20; border-radius: 10px 10px 0 0; }
+        .story-bar { height: 3px; background: rgba(255,255,255,0.3); border-radius: 3px; overflow: hidden; width: 100%; }
         .story-progress { height: 100%; background: white; width: 0%; transition: width 0.1s linear; }
+        .story-user { display: flex; align-items: center; gap: 10px; color: white; font-weight: 600; }
 
         .id-badge { background: #111b21; padding: 15px; border-radius: 15px; border: 1px dashed var(--accent); color: var(--accent); font-size: 24px; font-weight: bold; margin-bottom: 20px; }
-        .modal-content input, .modal-content textarea { width: 100%; padding: 14px; background: #111b21; border: 1px solid #3b4a54; color: white; border-radius: 12px; margin-bottom: 15px; outline: none; resize: none; }
+        .modal-content input[type="text"] { width: 100%; padding: 14px; background: #111b21; border: 1px solid #3b4a54; color: white; border-radius: 12px; margin-bottom: 15px; outline: none; }
+        .file-label { display: block; padding: 15px; background: #2a3942; border-radius: 12px; margin-bottom: 15px; cursor: pointer; color: var(--text-dim); border: 1px dashed var(--text-dim); }
         .btn-action { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
         .btn-danger { background: var(--danger); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
@@ -80,7 +90,6 @@
         .emoji-item { font-size: 24px; padding: 8px; cursor: pointer; text-align: center; }
         .active { display: flex !important; }
         .hidden { display: none !important; }
-        .chat-img { max-width: 250px; border-radius: 10px; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -142,17 +151,34 @@
                 <label class="icon-btn" for="img-upload"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg></label>
                 <input type="file" id="img-upload" accept="image/*" style="display:none">
                 <input type="text" id="msg-input" placeholder="Mensagem..." autocomplete="off">
-                <div class="icon-btn" onclick="handleSendMsg()"><svg viewBox="0 0 24 24" width="26" height="26" fill="var(--accent)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg></div>
+                <div class="icon-btn" id="btn-audio" onclick="handleAudioClick()"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zM17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path></svg></div>
+                <div class="icon-btn" id="btn-send" style="display:none" onclick="handleSendMsg('text')"><svg viewBox="0 0 24 24" width="26" height="26" fill="var(--accent)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg></div>
             </div>
         </div>
     </div>
 
     <!-- Modals -->
-    <div id="modal-profile" class="modal"><div class="modal-content"><h3>Meu Perfil</h3><div class="id-badge" id="display-id">----</div><input id="in-name" placeholder="Nome"><input id="in-pic" placeholder="URL Foto"><button class="btn-action" onclick="saveProfile()">SALVAR</button><button style="margin-top:10px; color:white; background:none; border:none; cursor:pointer" onclick="closeModals()">Fechar</button></div></div>
+    <div id="modal-profile" class="modal">
+        <div class="modal-content">
+            <h3>Meu Perfil</h3>
+            <div class="id-badge" id="display-id">----</div>
+            <input type="text" id="in-name" placeholder="Nome">
+            <label class="file-label">Trocar Foto de Perfil <input type="file" id="file-pfp" hidden accept="image/*"></label>
+            <button class="btn-action" onclick="saveProfile()">SALVAR</button>
+            <button style="margin-top:10px; color:white; background:none; border:none; cursor:pointer" onclick="closeModals()">Fechar</button>
+        </div>
+    </div>
     
-    <div id="modal-add" class="modal"><div class="modal-content"><h3>Buscar Fantasma</h3><input id="search-id" placeholder="Digite o ID" style="text-align:center"><button class="btn-action" onclick="findGhost()">CONECTAR</button><button style="margin-top:10px; color:white; background:none; border:none; cursor:pointer" onclick="closeModals()">Fechar</button></div></div>
+    <div id="modal-add" class="modal"><div class="modal-content"><h3>Buscar Fantasma</h3><input type="text" id="search-id" placeholder="Digite o ID" style="text-align:center"><button class="btn-action" onclick="findGhost()">CONECTAR</button><button style="margin-top:10px; color:white; background:none; border:none; cursor:pointer" onclick="closeModals()">Fechar</button></div></div>
     
-    <div id="modal-wallpaper" class="modal"><div class="modal-content"><h3>Fundo do Chat</h3><input id="in-wall" placeholder="Link da Imagem"><button class="btn-action" onclick="applyWallpaper()">APLICAR</button><button style="margin-top:10px; color:white; background:none; border:none; cursor:pointer" onclick="closeModals()">Fechar</button></div></div>
+    <div id="modal-wallpaper" class="modal">
+        <div class="modal-content">
+            <h3>Fundo do Chat</h3>
+            <label class="file-label">Carregar Imagem <input type="file" id="file-wall" hidden accept="image/*"></label>
+            <button class="btn-action" onclick="applyWallpaper()">APLICAR</button>
+            <button style="margin-top:10px; color:white; background:none; border:none; cursor:pointer" onclick="closeModals()">Fechar</button>
+        </div>
+    </div>
     
     <div id="modal-delete" class="modal">
         <div class="modal-content">
@@ -163,12 +189,11 @@
         </div>
     </div>
 
-    <!-- Status Modals -->
     <div id="modal-post-status" class="modal">
         <div class="modal-content">
             <h3>Novo Status (24h)</h3>
-            <input id="status-text" placeholder="Legenda...">
-            <input id="status-img" placeholder="Link da Imagem (Obrigatório)">
+            <input type="text" id="status-text" placeholder="Legenda...">
+            <label class="file-label">Selecionar Foto <input type="file" id="file-status" hidden accept="image/*"></label>
             <button class="btn-action" onclick="postStatus()">POSTAR</button>
             <button style="margin-top:15px; color:var(--text-dim); background:none; border:none; cursor:pointer" onclick="closeModals()">CANCELAR</button>
         </div>
@@ -176,13 +201,16 @@
 
     <div id="modal-view-status" class="modal">
         <div class="story-viewer">
-            <div class="story-bar"><div class="story-progress" id="story-progress"></div></div>
-            <img id="view-status-img" class="story-img">
-            <h3 id="view-status-caption" style="margin-bottom:10px"></h3>
-            <div style="display:flex; justify-content:space-between; align-items:center">
-                <div style="display:flex; align-items:center"><img id="view-status-pfp" class="avatar" style="width:30px; height:30px; margin-right:10px"><span id="view-status-name"></span></div>
-                <button onclick="closeModals()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer">✕</button>
+            <div class="story-top-overlay">
+                <div class="story-bar"><div class="story-progress" id="story-progress"></div></div>
+                <div class="story-user">
+                    <img id="view-status-pfp" class="avatar" style="width:35px; height:35px; border:none;">
+                    <span id="view-status-name"></span>
+                </div>
             </div>
+            <img id="view-status-img" class="story-img">
+            <h3 id="view-status-caption" style="color:white; text-align:center; text-shadow:0 1px 3px black; z-index:20;"></h3>
+            <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; font-size:24px; cursor:pointer; z-index:30;">✕</button>
         </div>
     </div>
 
@@ -205,7 +233,33 @@
         const db = getFirestore(app);
 
         let myData = {}, activeChatId = null, activeTarget = null, unsub = null, selectedMsgId = null;
-        let savedContacts = {}; // uid -> nickname
+        let savedContacts = {};
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+
+        // --- COMPRESSION UTIL (Essential for Base64 Only) ---
+        const compressImage = (file) => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800;
+                        const scaleSize = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scaleSize;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.6)); // 60% quality
+                    };
+                    img.onerror = (err) => reject(err);
+                };
+            });
+        };
 
         // --- AUTH & INIT ---
         onAuthStateChanged(auth, async (user) => {
@@ -225,9 +279,51 @@
             }
         });
 
+        // --- AUDIO SYSTEM ---
+        window.handleAudioClick = async () => {
+            const btn = document.getElementById('btn-audio');
+            if(!isRecording) {
+                // START RECORDING
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                    mediaRecorder.start();
+                    isRecording = true;
+                    btn.classList.add('recording');
+                    document.getElementById('msg-input').placeholder = "Gravando... Clique novamente para enviar";
+                    document.getElementById('msg-input').disabled = true;
+                } catch(e) { alert("Erro ao acessar microfone"); }
+            } else {
+                // STOP & SEND
+                mediaRecorder.stop();
+                isRecording = false;
+                btn.classList.remove('recording');
+                document.getElementById('msg-input').placeholder = "Mensagem...";
+                document.getElementById('msg-input').disabled = false;
+                
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    // Convert to Base64
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = async () => {
+                        const base64Audio = reader.result;
+                        if(activeChatId) {
+                            await addDoc(collection(db, "messages"), { 
+                                chatId: activeChatId, participants: [myData.uid, activeTarget.uid], 
+                                senderId: myData.uid, content: base64Audio, type: 'audio', 
+                                timestamp: serverTimestamp(), isDeleted: false, hiddenFor: [] 
+                            });
+                        }
+                    };
+                };
+            }
+        };
+
         // --- CONTACTS SYSTEM ---
         function loadContacts() {
-            // Listen to contacts where owner is me
             onSnapshot(query(collection(db, "contacts"), where("owner", "==", myData.uid)), (snap) => {
                 const list = document.getElementById('list-contacts');
                 list.innerHTML = '';
@@ -236,8 +332,6 @@
                 snap.forEach(d => {
                     const c = d.data();
                     savedContacts[c.target] = c.name;
-                    
-                    // Render in Contact Tab
                     const item = document.createElement('div');
                     item.className = 'list-item';
                     item.innerHTML = `<img src="${c.pic}"> <div><b>${c.name}</b><br><small style="color:var(--text-dim)">ID: ${c.ghostId}</small></div>`;
@@ -252,51 +346,38 @@
 
         window.saveCurrentContact = async () => {
             if(!activeTarget) return;
-            // Check if already saved
             const q = query(collection(db, "contacts"), where("owner", "==", myData.uid), where("target", "==", activeTarget.uid));
             const snap = await getDocs(q);
-            
             if(snap.empty) {
                 const name = prompt("Nome para salvar o contato:", activeTarget.name);
                 if(name) {
                     await addDoc(collection(db, "contacts"), {
-                        owner: myData.uid,
-                        target: activeTarget.uid,
-                        name: name,
-                        pic: activeTarget.pic,
-                        ghostId: activeTarget.ghostId || '???'
+                        owner: myData.uid, target: activeTarget.uid, name: name,
+                        pic: activeTarget.pic, ghostId: activeTarget.ghostId || '???'
                     });
                     alert("Contato salvo!");
                 }
-            } else {
-                alert("Contato já está salvo.");
-            }
+            } else alert("Contato já salvo.");
         }
 
         // --- STATUS SYSTEM ---
         window.postStatus = async () => {
             const txt = document.getElementById('status-text').value;
-            const img = document.getElementById('status-img').value;
-            if(!img) return alert("Imagem é obrigatória para status!");
+            const fileInput = document.getElementById('file-status');
+            if(fileInput.files.length === 0) return alert("Selecione uma foto!");
 
-            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h from now
+            const base64 = await compressImage(fileInput.files[0]);
+            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
             await addDoc(collection(db, "status"), {
-                uid: myData.uid,
-                name: myData.name,
-                pic: myData.pic,
-                imageUrl: img,
-                caption: txt,
-                timestamp: serverTimestamp(),
-                expiresAt: expiresAt
+                uid: myData.uid, name: myData.name, pic: myData.pic,
+                imageUrl: base64, caption: txt, timestamp: serverTimestamp(), expiresAt: expiresAt
             });
             closeModals();
-            alert("Status postado! Expira em 24h.");
         };
 
         function loadStatusFeed() {
-            // In a real app we'd query by date, but here we filter client-side for simplicity of index rules
-            onSnapshot(query(collection(db, "status"), orderBy("timestamp", "desc"), limit(50)), (snap) => {
+            onSnapshot(query(collection(db, "status"), orderBy("timestamp", "desc"), limit(20)), (snap) => {
                 const list = document.getElementById('list-status');
                 const now = new Date();
                 const uniqueUsers = new Set();
@@ -308,7 +389,7 @@
 
                 snap.forEach(d => {
                     const s = d.data();
-                    if(s.expiresAt.toDate() > now && s.uid !== myData.uid) {
+                    if(s.expiresAt.toDate() > now) {
                         if(!uniqueUsers.has(s.uid)) {
                             uniqueUsers.add(s.uid);
                             const item = document.createElement('div');
@@ -328,18 +409,18 @@
             document.getElementById('view-status-caption').innerText = s.caption;
             document.getElementById('view-status-pfp').src = s.pic;
             document.getElementById('view-status-name').innerText = s.name;
-            
             modal.classList.add('active');
             
-            // Progress Bar Animation
             const bar = document.getElementById('story-progress');
             bar.style.width = '0%';
-            setTimeout(() => bar.style.width = '100%', 100);
-            
-            // Auto close after 5s
-            setTimeout(() => {
-                if(modal.classList.contains('active')) closeModals();
-            }, 5000);
+            bar.style.transition = 'none';
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    bar.style.transition = 'width 5s linear';
+                    bar.style.width = '100%';
+                });
+            });
+            setTimeout(() => { if(modal.classList.contains('active')) closeModals(); }, 5000);
         }
 
         // --- CHAT & SIDEBAR ---
@@ -354,54 +435,45 @@
                     const other = m.participants.find(p => p !== myData.uid);
                     if(other && !uids.has(other)) {
                         uids.add(other);
-                        previews[other] = {
-                            msg: m.isDeleted ? '🚫 Apagada' : (m.type=='image'?'📷 Foto':m.content),
-                            time: m.timestamp
-                        };
+                        let txt = m.content;
+                        if(m.isDeleted) txt = '🚫 Apagada';
+                        else if(m.type === 'image') txt = '📷 Foto';
+                        else if(m.type === 'audio') txt = '🎤 Áudio';
+                        
+                        previews[other] = { msg: txt, time: m.timestamp };
                     }
                 });
 
                 list.innerHTML = '';
                 for(let uid of uids) {
-                    // Try to get data from Saved Contacts first, then User DB
                     let name = savedContacts[uid];
-                    let pic = null;
-                    let ghostId = null;
+                    let pic = 'https://via.placeholder.com/50';
+                    let ghostId = '???';
 
-                    if(!name) {
-                        const uSnap = await getDocs(query(collection(db, "users"), where("uid", "==", uid)));
-                        if(!uSnap.empty) {
-                            const u = uSnap.docs[0].data();
-                            name = u.name;
-                            pic = u.pic;
-                            ghostId = u.ghostId;
-                        }
-                    } else {
-                        // We have the name, need pic/ghostId if possible
-                        const uSnap = await getDocs(query(collection(db, "users"), where("uid", "==", uid)));
-                        if(!uSnap.empty) {
-                            pic = uSnap.docs[0].data().pic;
-                            ghostId = uSnap.docs[0].data().ghostId;
-                        }
+                    // Fetch user info if not in contacts
+                    const uSnap = await getDocs(query(collection(db, "users"), where("uid", "==", uid)));
+                    if(!uSnap.empty) {
+                        const u = uSnap.docs[0].data();
+                        pic = u.pic;
+                        ghostId = u.ghostId;
+                        if(!name) name = u.name;
                     }
 
-                    if(name) {
-                        const item = document.createElement('div');
-                        item.className = 'list-item';
-                        item.innerHTML = `
-                            <img src="${pic || 'https://via.placeholder.com/50'}"> 
-                            <div style="flex:1">
-                                <div style="display:flex; justify-content:space-between">
-                                    <b>${name}</b>
-                                    <span style="font-size:11px; color:var(--text-dim)">${formatTime(previews[uid].time.toDate())}</span>
-                                </div>
-                                <div style="font-size:13px; color:var(--text-dim); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; max-width:200px">
-                                    ${previews[uid].msg}
-                                </div>
-                            </div>`;
-                        item.onclick = () => startChat({ uid, name, pic, ghostId });
-                        list.appendChild(item);
-                    }
+                    const item = document.createElement('div');
+                    item.className = 'list-item';
+                    item.innerHTML = `
+                        <img src="${pic}"> 
+                        <div style="flex:1">
+                            <div style="display:flex; justify-content:space-between">
+                                <b>${name || 'Desconhecido'}</b>
+                                <span style="font-size:11px; color:var(--text-dim)">${previews[uid].time ? formatTime(previews[uid].time.toDate()) : ''}</span>
+                            </div>
+                            <div style="font-size:13px; color:var(--text-dim); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; max-width:200px">
+                                ${previews[uid].msg}
+                            </div>
+                        </div>`;
+                    item.onclick = () => startChat({ uid, name: name || 'Desconhecido', pic, ghostId });
+                    list.appendChild(item);
                 }
             });
         }
@@ -414,7 +486,7 @@
             document.getElementById('target-id').innerText = `ID: ${target.ghostId}`;
             document.getElementById('target-pfp').src = target.pic;
             
-            // Wallpaper
+            // Wallpaper Base64 check
             const savedWall = localStorage.getItem(`wall_${activeChatId}`);
             document.getElementById('chat-bg-area').style.backgroundImage = savedWall ? `url('${savedWall}')` : `url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')`;
 
@@ -432,8 +504,22 @@
                     const wrap = document.createElement('div');
                     wrap.className = `msg-wrapper ${isOwn ? 'own' : 'other'}`;
                     
-                    let content = m.isDeleted ? '<span class="deleted-note">🚫 Mensagem apagada</span>' : 
-                                 (m.type === 'image' ? `<img src="${m.content}" class="chat-img">` : m.content);
+                    let content = '';
+                    if(m.isDeleted) {
+                        content = '<span class="deleted-note">🚫 Mensagem apagada</span>';
+                    } else if(m.type === 'image') {
+                        content = `<img src="${m.content}" class="chat-img">`;
+                    } else if(m.type === 'audio') {
+                        const uniqueId = `audio-${d.id}`;
+                        content = `<div class="audio-player">
+                            <button class="play-btn" onclick="toggleAudio('${uniqueId}')">▶</button>
+                            <div class="audio-track"><div class="audio-progress" id="prog-${uniqueId}"></div></div>
+                            <button class="speed-btn" onclick="changeSpeed(this, '${uniqueId}')">1x</button>
+                            <audio id="${uniqueId}" src="${m.content}" ontimeupdate="updateAudioUI('${uniqueId}')" onended="resetAudioUI('${uniqueId}')"></audio>
+                        </div>`;
+                    } else {
+                        content = m.content;
+                    }
                     
                     wrap.innerHTML = `<div class="msg-bubble" onclick="openDeleteMenu('${d.id}', ${isOwn}, ${m.isDeleted})">
                         ${content}
@@ -445,8 +531,8 @@
             });
         }
 
-        // --- CORE UTILS ---
-        window.handleSendMsg = async () => {
+        // --- CORE & HELPERS ---
+        window.handleSendMsg = async (type) => {
             const input = document.getElementById('msg-input');
             if(input.value.trim() && activeChatId) {
                 await addDoc(collection(db, "messages"), { 
@@ -457,6 +543,51 @@
                 input.value = '';
             }
         };
+
+        // Audio Player Logic
+        window.toggleAudio = (id) => {
+            const audio = document.getElementById(id);
+            const btn = audio.parentElement.querySelector('.play-btn');
+            document.querySelectorAll('audio').forEach(a => { if(a !== audio) { a.pause(); a.currentTime = 0; } }); // Stop others
+            if(audio.paused) { audio.play(); btn.innerText = '⏸'; } 
+            else { audio.pause(); btn.innerText = '▶'; }
+        };
+        window.updateAudioUI = (id) => {
+            const audio = document.getElementById(id);
+            const prog = document.getElementById(`prog-${id}`);
+            if(audio.duration) prog.style.width = ((audio.currentTime / audio.duration) * 100) + '%';
+        };
+        window.resetAudioUI = (id) => {
+            document.getElementById(id).parentElement.querySelector('.play-btn').innerText = '▶';
+            document.getElementById(`prog-${id}`).style.width = '0%';
+        };
+        window.changeSpeed = (btn, id) => {
+            const audio = document.getElementById(id);
+            let rate = parseFloat(btn.innerText.replace('x',''));
+            if(rate === 1) rate = 1.5; else if(rate === 1.5) rate = 2; else rate = 1;
+            audio.playbackRate = rate;
+            btn.innerText = rate + 'x';
+        };
+
+        // Text input handling for Send Icon
+        document.getElementById('msg-input').addEventListener('input', function() {
+            const btnSend = document.getElementById('btn-send');
+            const btnAudio = document.getElementById('btn-audio');
+            if(this.value.trim()) { btnSend.style.display = 'flex'; btnAudio.style.display = 'none'; }
+            else { btnSend.style.display = 'none'; btnAudio.style.display = 'flex'; }
+        });
+
+        // Image & Wallpaper Uploaders
+        document.getElementById('img-upload').addEventListener('change', async function() {
+            if(this.files[0] && activeChatId) {
+                const base64 = await compressImage(this.files[0]);
+                await addDoc(collection(db, "messages"), {
+                    chatId: activeChatId, participants: [myData.uid, activeTarget.uid],
+                    senderId: myData.uid, content: base64, type: 'image',
+                    timestamp: serverTimestamp(), isDeleted: false, hiddenFor: []
+                });
+            }
+        });
 
         window.openDeleteMenu = (id, isOwn, isDeleted) => {
             if(isDeleted && !isOwn) return;
@@ -494,27 +625,31 @@
         window.switchTab = (tab) => {
             document.querySelectorAll('.list-container').forEach(el => el.classList.add('hidden'));
             document.getElementById(`list-${tab}`).classList.remove('hidden');
-            
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            // simple index check or loop
             const tabs = ['chats', 'status', 'contacts'];
             document.querySelectorAll('.nav-item')[tabs.indexOf(tab)].classList.add('active');
         };
 
-        // --- HELPERS ---
         window.saveProfile = async () => {
             const name = document.getElementById('in-name').value;
-            const pic = document.getElementById('in-pic').value;
+            const file = document.getElementById('file-pfp').files[0];
             if(name) { myData.name = name; localStorage.setItem('ghost_name', name); }
-            if(pic) { myData.pic = pic; localStorage.setItem('ghost_pic', pic); }
+            if(file) { 
+                const base64 = await compressImage(file);
+                myData.pic = base64; 
+                localStorage.setItem('ghost_pic', base64); 
+            }
             await setDoc(doc(db, "users", myData.uid), myData, { merge: true });
             location.reload();
         };
-        window.applyWallpaper = () => {
-            const url = document.getElementById('in-wall').value;
-            if(url) localStorage.setItem(`wall_${activeChatId}`, url);
-            else localStorage.removeItem(`wall_${activeChatId}`);
-            startChat(activeTarget); // reload bg
+
+        window.applyWallpaper = async () => {
+            const file = document.getElementById('file-wall').files[0];
+            if(file) {
+                const base64 = await compressImage(file);
+                localStorage.setItem(`wall_${activeChatId}`, base64);
+                startChat(activeTarget); 
+            }
             closeModals();
         };
         
@@ -522,22 +657,6 @@
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
         window.handleLogin = () => signInAnonymously(auth);
-
-        document.getElementById('img-upload').addEventListener('change', function() {
-            if (this.files && this.files[0] && activeChatId) {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                   if(e.target.result.length > 800000) return alert("Imagem muito grande!");
-                   await addDoc(collection(db, "messages"), {
-                        chatId: activeChatId, participants: [myData.uid, activeTarget.uid],
-                        senderId: myData.uid, content: e.target.result, type: 'image',
-                        timestamp: serverTimestamp(), isDeleted: false, hiddenFor: []
-                    });
-                };
-                reader.readAsDataURL(this.files[0]);
-                this.value = '';
-            }
-        });
 
         const emojis = "😀😃😄😁😆😅😂🤣😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😜🤪😝🤑🤗🤭🤫🤔😐😑😶😏😒🙄😬🤥😌😔😪🤤😴";
         const picker = document.getElementById('emoji-picker');
@@ -547,9 +666,7 @@
             picker.appendChild(s);
         });
 
-        function formatTime(date) {
-            return `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
-        }
+        function formatTime(date) { return `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`; }
         function getTimeAgo(date) {
             const diff = Math.floor((new Date() - date) / 60000);
             if(diff < 60) return `${diff} min atrás`;
