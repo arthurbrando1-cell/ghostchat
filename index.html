@@ -1,425 +1,179 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Web Clone</title>
+    <title>WhatsApp Web Clone - Live</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* WhatsApp Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px !important;
-            height: 6px !important;
-        }
-        ::-webkit-scrollbar-thumb {
-            background-color: rgba(0, 0, 0, 0.2);
-        }
-        ::-webkit-scrollbar-track {
-            background: hsla(0, 0%, 100%, 0.1);
-        }
-        
-        /* Chat Background with Doodle pattern approximation */
+        ::-webkit-scrollbar { width: 6px !important; }
+        ::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.2); }
         .chat-bg {
             background-color: #efeae2;
             background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
             background-repeat: repeat;
-            opacity: 0.9;
         }
-
-        .wa-green-bg {
-            background-color: #00a884;
-        }
-        
-        .message-out {
-            background-color: #d9fdd3;
-            border-radius: 7.5px 0px 7.5px 7.5px;
-        }
-        
-        .message-in {
-            background-color: #ffffff;
-            border-radius: 0px 7.5px 7.5px 7.5px;
-        }
-
-        /* Triangle hacks for speech bubbles */
+        .wa-green-bg { background-color: #00a884; }
+        .message-out { background-color: #d9fdd3; border-radius: 7.5px 0 7.5px 7.5px; align-self: flex-end; }
+        .message-in { background-color: #ffffff; border-radius: 0 7.5px 7.5px 7.5px; align-self: flex-start; }
         .message-out::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: -8px;
-            width: 0;
-            height: 0;
-            border-top: 0px solid transparent;
-            border-bottom: 10px solid transparent;
-            border-left: 10px solid #d9fdd3;
+            content: ""; position: absolute; top: 0; right: -8px;
+            border-bottom: 10px solid transparent; border-left: 10px solid #d9fdd3;
         }
-
         .message-in::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -8px;
-            width: 0;
-            height: 0;
-            border-top: 0px solid transparent;
-            border-bottom: 10px solid transparent;
-            border-right: 10px solid #ffffff;
+            content: ""; position: absolute; top: 0; left: -8px;
+            border-bottom: 10px solid transparent; border-right: 10px solid #ffffff;
         }
     </style>
 </head>
-<body class="bg-[#d1d7db] h-screen overflow-hidden relative font-sans">
+<body class="bg-[#d1d7db] h-screen overflow-hidden font-sans">
 
-    <!-- Green Header Strip -->
     <div class="absolute top-0 w-full h-32 wa-green-bg z-0"></div>
 
-    <!-- Login Modal -->
-    <div id="login-modal" class="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div id="login-modal" class="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
         <div class="bg-white p-8 rounded-lg shadow-xl w-96 text-center">
-            <div class="text-[#00a884] text-5xl mb-4">
-                <i class="fab fa-whatsapp"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">WhatsApp Web</h2>
-            <p class="text-gray-600 mb-6">Enter your name to join the chat</p>
-            <input type="text" id="username-input" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-[#00a884] mb-4" placeholder="Your Display Name">
-            <button id="login-btn" class="w-full bg-[#00a884] text-white py-2 rounded hover:bg-[#008f6f] transition font-semibold">Start Chatting</button>
+            <div class="text-[#00a884] text-5xl mb-4"><i class="fab fa-whatsapp"></i></div>
+            <h2 class="text-2xl font-bold mb-2">WhatsApp Web</h2>
+            <p class="text-gray-600 mb-6">Digite seu nome para entrar no chat global</p>
+            <input type="text" id="username-input" class="w-full px-4 py-2 border rounded mb-4 focus:outline-[#00a884]" placeholder="Seu nome">
+            <button id="login-btn" class="w-full bg-[#00a884] text-white py-2 rounded font-semibold hover:bg-[#008f6f]">Entrar</button>
         </div>
     </div>
 
-    <!-- Main App Container -->
-    <div id="app-container" class="relative z-10 container mx-auto h-[95vh] top-[2.5vh] flex shadow-lg overflow-hidden bg-white hidden">
+    <div id="app-container" class="relative z-10 container mx-auto h-[95vh] top-[2.5vh] flex shadow-lg bg-white hidden">
         
-        <!-- Sidebar (Left) -->
-        <div class="w-[30%] h-full flex flex-col border-r border-gray-300 bg-white">
-            <!-- Sidebar Header -->
-            <div class="bg-[#f0f2f5] px-4 py-3 flex justify-between items-center border-b border-gray-200">
-                <div class="w-10 h-10 rounded-full bg-gray-300 overflow-hidden cursor-pointer">
-                    <img src="https://ui-avatars.com/api/?name=Me&background=random" id="my-avatar" class="w-full h-full object-cover">
-                </div>
-                <div class="flex gap-6 text-[#54656f]">
-                    <button title="Communities"><i class="fas fa-users text-xl"></i></button>
-                    <button title="Status"><i class="fas fa-circle-notch text-xl"></i></button>
-                    <button title="New Chat"><i class="fas fa-message text-xl"></i></button>
-                    <button title="Menu" id="menu-btn"><i class="fas fa-ellipsis-vertical text-xl"></i></button>
+        <div class="w-1/3 border-r flex flex-col">
+            <div class="bg-[#f0f2f5] px-4 py-3 flex justify-between items-center">
+                <img id="my-avatar" class="w-10 h-10 rounded-full" src="">
+                <div class="flex gap-4 text-[#54656f]">
+                    <i class="fas fa-circle-notch cursor-pointer"></i>
+                    <i id="logout-btn" class="fas fa-right-from-bracket cursor-pointer" title="Sair"></i>
                 </div>
             </div>
-
-            <!-- Search Bar -->
-            <div class="bg-white p-2 border-b border-gray-100">
-                <div class="bg-[#f0f2f5] rounded-lg flex items-center px-3 py-1.5">
-                    <i class="fas fa-search text-[#54656f] text-sm mr-4 pl-1"></i>
-                    <input type="text" placeholder="Search or start new chat" class="bg-transparent w-full text-sm focus:outline-none placeholder-[#54656f]">
+            <div class="p-2 bg-white">
+                <div class="bg-[#f0f2f5] rounded-lg px-3 py-1 flex items-center">
+                    <i class="fas fa-search text-gray-500 mr-3"></i>
+                    <input type="text" placeholder="Pesquisar..." class="bg-transparent text-sm w-full outline-none">
                 </div>
             </div>
-
-            <!-- Chat List -->
-            <div class="flex-1 overflow-y-auto bg-white" id="chat-list">
-                <!-- Global Chat Item (Default) -->
-                <div id="global-chat" class="flex items-center gap-3 p-3 cursor-pointer hover:bg-[#f0f2f5] border-b border-gray-100 bg-[#f0f2f5]">
+            <div class="flex-1 overflow-y-auto">
+                <div class="flex items-center gap-3 p-3 bg-[#f0f2f5] border-b">
                     <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl">
                         <i class="fas fa-globe"></i>
                     </div>
-                    <div class="flex-1 border-b border-gray-100 pb-2 -mb-2">
-                        <div class="flex justify-between items-center mb-1">
-                            <h3 class="font-medium text-[#111b21]">Global Chat</h3>
-                            <span class="text-xs text-[#667781]" id="last-time">Now</span>
-                        </div>
-                        <p class="text-sm text-[#667781] truncate" id="last-message">Tap to join the global conversation</p>
-                    </div>
-                </div>
-                <!-- Additional static fake chats for visual fidelity -->
-                <div class="flex items-center gap-3 p-3 cursor-pointer hover:bg-[#f0f2f5] border-b border-gray-100">
-                    <div class="w-12 h-12 rounded-full bg-gray-300 overflow-hidden">
-                        <img src="https://ui-avatars.com/api/?name=Alice&background=FF5733&color=fff" class="w-full h-full object-cover">
-                    </div>
                     <div class="flex-1">
-                        <div class="flex justify-between items-center mb-1">
-                            <h3 class="font-medium text-[#111b21]">Alice</h3>
-                            <span class="text-xs text-[#667781]">Yesterday</span>
-                        </div>
-                        <p class="text-sm text-[#667781] truncate">Hey! How are you?</p>
-                    </div>
-                </div>
-                 <div class="flex items-center gap-3 p-3 cursor-pointer hover:bg-[#f0f2f5] border-b border-gray-100">
-                    <div class="w-12 h-12 rounded-full bg-gray-300 overflow-hidden">
-                        <img src="https://ui-avatars.com/api/?name=Bob&background=33FF57&color=fff" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between items-center mb-1">
-                            <h3 class="font-medium text-[#111b21]">Bob</h3>
-                            <span class="text-xs text-[#667781]">Tuesday</span>
-                        </div>
-                        <p class="text-sm text-[#667781] truncate">Are we still on for the meeting?</p>
+                        <div class="flex justify-between"><h3 class="font-medium">Chat Global</h3><span id="last-time" class="text-xs text-gray-500"></span></div>
+                        <p id="last-message" class="text-sm text-gray-500 truncate">Inicie uma conversa...</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Chat Area (Right) -->
-        <div class="w-[70%] h-full flex flex-col bg-[#efeae2] relative">
-            <!-- Chat Header -->
-            <div class="bg-[#f0f2f5] px-4 py-3 flex justify-between items-center border-b border-gray-200 z-20">
-                <div class="flex items-center gap-4 cursor-pointer">
-                    <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                        <i class="fas fa-globe"></i>
-                    </div>
-                    <div class="flex flex-col">
-                        <h3 class="font-medium text-[#111b21]">Global Chat</h3>
-                        <span class="text-xs text-[#667781]">online</span>
-                    </div>
-                </div>
-                <div class="flex gap-6 text-[#54656f]">
-                    <button><i class="fas fa-search text-xl"></i></button>
-                    <button><i class="fas fa-paperclip text-xl"></i></button>
-                    <button><i class="fas fa-ellipsis-vertical text-xl"></i></button>
-                </div>
+        <div class="flex-1 flex flex-col chat-bg">
+            <div class="bg-[#f0f2f5] px-4 py-3 flex items-center gap-4 border-b">
+                <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white"><i class="fas fa-globe"></i></div>
+                <div><h3 class="font-medium">Chat Global</h3><span class="text-xs text-green-600">online agora</span></div>
             </div>
 
-            <!-- Messages Area -->
-            <div class="flex-1 overflow-y-auto p-4 md:p-10 chat-bg relative" id="messages-container">
-                <!-- Messages will be injected here -->
-                <div class="flex justify-center mb-4">
-                    <div class="bg-[#ffeecd] text-[#54656f] text-xs px-3 py-1.5 rounded-lg shadow-sm text-center">
-                        <i class="fas fa-lock text-[10px] mr-1"></i> Messages are end-to-end encrypted. No one outside of this chat, not even WhatsApp, can read or listen to them.
-                    </div>
+            <div id="messages-container" class="flex-1 overflow-y-auto p-6 flex flex-col gap-2">
                 </div>
-            </div>
 
-            <!-- Input Area -->
-            <div class="bg-[#f0f2f5] px-4 py-2 flex items-center gap-4 z-20">
-                <button class="text-[#54656f] hover:text-[#3b4a54]">
-                    <i class="far fa-face-smile text-2xl"></i>
-                </button>
-                <button class="text-[#54656f] hover:text-[#3b4a54]">
-                    <i class="fas fa-plus text-2xl"></i>
-                </button>
-                <div class="flex-1 bg-white rounded-lg px-4 py-2 flex items-center">
-                    <input type="text" id="message-input" class="w-full focus:outline-none text-[#111b21]" placeholder="Type a message">
-                </div>
-                <button id="send-btn" class="text-[#54656f] hover:text-[#3b4a54]">
-                    <i class="fas fa-paper-plane text-2xl" id="send-icon"></i> <!-- Changed to send icon -->
-                </button>
+            <div class="bg-[#f0f2f5] px-4 py-3 flex items-center gap-4">
+                <i class="far fa-face-smile text-2xl text-gray-600 cursor-pointer"></i>
+                <input type="text" id="message-input" class="flex-1 px-4 py-2 rounded-lg outline-none" placeholder="Digite uma mensagem">
+                <button id="send-btn" class="text-gray-600"><i id="send-icon" class="fas fa-paper-plane text-2xl"></i></button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // CONFIGURAÇÃO DO FIREBASE (Substitua pelos seus dados do console)
         const firebaseConfig = {
-            apiKey: "AIzaSyC0DhQ-EUs3Azqn7_tbB-W3S9ko0DaUWls",
-            authDomain: "ghostchat-app-3a3f0.firebaseapp.com",
-            projectId: "ghostchat-app-3a3f0",
-            storageBucket: "ghostchat-app-3a3f0.firebasestorage.app",
-            messagingSenderId: "781582052854",
-            appId: "1:781582052854:web:7fba6eae2a372ce0e22bd7"
+            apiKey: "AIzaSy...", 
+            authDomain: "seu-projeto.firebaseapp.com",
+            projectId: "seu-projeto",
+            storageBucket: "seu-projeto.appspot.com",
+            messagingSenderId: "00000000",
+            appId: "1:0000:web:0000"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // App State
-        let currentUser = localStorage.getItem('whatsapp_user') || null;
-        let currentUserId = localStorage.getItem('whatsapp_uid') || null;
-        
-        // DOM Elements
+        // Estado do Usuário
+        let user = localStorage.getItem('chat_user');
+        let uid = localStorage.getItem('chat_uid') || 'u_' + Date.now();
+        localStorage.setItem('chat_uid', uid);
+
         const loginModal = document.getElementById('login-modal');
         const appContainer = document.getElementById('app-container');
-        const usernameInput = document.getElementById('username-input');
-        const loginBtn = document.getElementById('login-btn');
-        const messageInput = document.getElementById('message-input');
-        const sendBtn = document.getElementById('send-btn');
-        const sendIcon = document.getElementById('send-icon');
-        const messagesContainer = document.getElementById('messages-container');
-        const myAvatar = document.getElementById('my-avatar');
-        const globalChat = document.getElementById('global-chat');
-        const menuBtn = document.getElementById('menu-btn');
-        
-        // Helper: Scroll to bottom
-        function scrollToBottom() {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
+        const msgInput = document.getElementById('message-input');
+        const msgContainer = document.getElementById('messages-container');
 
-        // Helper: Format Time
-        function formatTime(timestamp) {
-            if (!timestamp) return '';
-            const date = timestamp.toDate();
-            let hours = date.getHours();
-            let minutes = date.getMinutes();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12; // the hour '0' should be '12'
-            minutes = minutes < 10 ? '0'+minutes : minutes;
-            return hours + ':' + minutes + ' ' + ampm;
-        }
-
-        // Login Function
-        function login() {
-            const name = usernameInput.value.trim();
-            if (name) {
-                currentUser = name;
-                currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('whatsapp_user', currentUser);
-                localStorage.setItem('whatsapp_uid', currentUserId);
-                
-                showApp();
-            }
-        }
-
-        function showApp() {
-            loginModal.classList.add('hidden');
-            appContainer.classList.remove('hidden');
-            appContainer.classList.add('flex'); // Because it was hidden
-            myAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser)}&background=00a884&color=fff`;
-            
-            // Start listening to messages
-            loadMessages();
-            updateSendIcon();
-        }
-
-        // Check if already logged in
-        if (currentUser) {
-            showApp();
-        } else {
-            loginModal.classList.remove('hidden');
-        }
-
-        // Event Listeners for Login
-        loginBtn.addEventListener('click', login);
-        usernameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') login();
-        });
-
-        // Toggle Send/Mic Icon
-        function updateSendIcon() {
-            if (messageInput.value.trim().length > 0) {
-                sendIcon.className = "fas fa-paper-plane text-2xl"; // Send Icon
+        function checkAuth() {
+            if (!user) {
+                loginModal.classList.remove('hidden');
             } else {
-                sendIcon.className = "fas fa-microphone text-2xl"; // Mic Icon
+                loginModal.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                document.getElementById('my-avatar').src = `https://ui-avatars.com/api/?name=${user}&background=00a884&color=fff`;
+                loadMessages();
             }
         }
 
-        // Send Message Function
+        document.getElementById('login-btn').onclick = () => {
+            const name = document.getElementById('username-input').value.trim();
+            if (name) {
+                user = name;
+                localStorage.setItem('chat_user', name);
+                checkAuth();
+            }
+        };
+
         async function sendMessage() {
-            const text = messageInput.value.trim();
-            if (!text) return; // If empty (mic mode), do nothing for now
+            const text = msgInput.value.trim();
+            if (!text) return;
 
-            const textToSend = text;
-            messageInput.value = '';
-            updateSendIcon();
-            
-            try {
-                await addDoc(collection(db, "messages"), {
-                    text: textToSend,
-                    user: currentUser,
-                    uid: currentUserId,
-                    createdAt: serverTimestamp()
-                });
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                // alert("Error sending message. Check console/permissions.");
-            }
-        }
-
-        // Event Listeners for Sending
-        sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-        messageInput.addEventListener('input', updateSendIcon);
-        
-        // Chat Selection Visual Feedback
-        if(globalChat) {
-            globalChat.addEventListener('click', () => {
-                // Already selected style
+            msgInput.value = '';
+            await addDoc(collection(db, "global_messages"), {
+                text,
+                user,
+                uid,
+                timestamp: serverTimestamp()
             });
         }
 
-        // Logout Functionality
-        if(menuBtn) {
-            menuBtn.addEventListener('click', () => {
-                if(confirm("Logout and switch user?")) {
-                    localStorage.removeItem('whatsapp_user');
-                    localStorage.removeItem('whatsapp_uid');
-                    window.location.reload();
-                }
-            });
-        }
-
-        // Load Messages
         function loadMessages() {
-            const q = query(collection(db, "messages"), orderBy("createdAt", "asc"), limit(100));
-            
+            const q = query(collection(db, "global_messages"), orderBy("timestamp", "asc"));
             onSnapshot(q, (snapshot) => {
-                // We clear mostly to prevent duplicates if logic was complex, but simple append is better for performance.
-                // However, with React/Vue usually we diff. Here vanilla JS, let's just clear and render for simplicity or append new ones.
-                // For a robust implementation, let's clear and re-render or handle doc changes. 
-                // Given the 100 limit, clearing and re-rendering is acceptable for a demo.
-                
-                messagesContainer.innerHTML = `
-                    <div class="flex justify-center mb-4 pt-4">
-                        <div class="bg-[#ffeecd] text-[#54656f] text-xs px-3 py-1.5 rounded-lg shadow-sm text-center select-none">
-                            <i class="fas fa-lock text-[10px] mr-1"></i> Messages are end-to-end encrypted. No one outside of this chat, not even WhatsApp, can read or listen to them.
-                        </div>
-                    </div>
-                `;
-
-                snapshot.forEach((doc) => {
+                msgContainer.innerHTML = '';
+                snapshot.forEach(doc => {
                     const data = doc.data();
-                    const isMe = data.uid === currentUserId;
+                    const isMe = data.uid === uid;
+                    const time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...';
                     
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = `flex mb-2 ${isMe ? 'justify-end' : 'justify-start'}`;
-                    
-                    const time = data.createdAt ? formatTime(data.createdAt) : '...';
-                    
-                    // Bubble color and shape
-                    const bubbleClass = isMe ? 'message-out' : 'message-in';
-                    const nameDisplay = isMe ? '' : `<div class="text-[#d75e47] text-xs font-bold mb-1">${data.user}</div>`;
-                    const checkmark = isMe ? `<span class="ml-1 text-[#53bdeb]"><i class="fas fa-check-double text-[10px]"></i></span>` : '';
-
-                    msgDiv.innerHTML = `
-                        <div class="${bubbleClass} relative max-w-[65%] px-2 py-1 shadow-sm text-sm">
-                            ${nameDisplay}
-                            <div class="flex flex-col relative">
-                                <span class="text-[#111b21] pb-1 pr-16 leading-relaxed">${escapeHtml(data.text)}</span>
-                                <div class="absolute bottom-[-4px] right-0 flex items-center text-[10px] text-[#667781] select-none">
-                                    <span class="mr-1">${time}</span>
-                                    ${checkmark}
-                                </div>
-                            </div>
-                        </div>
+                    const div = document.createElement('div');
+                    div.className = `relative max-w-[70%] px-3 py-1 shadow-sm ${isMe ? 'message-out' : 'message-in'}`;
+                    div.innerHTML = `
+                        ${!isMe ? `<div class="text-orange-600 text-[11px] font-bold">${data.user}</div>` : ''}
+                        <div class="text-[#111b21] pr-12">${data.text}</div>
+                        <div class="text-[10px] text-gray-500 absolute bottom-1 right-2">${time} ${isMe ? '<i class="fas fa-check-double text-blue-400"></i>' : ''}</div>
                     `;
-                    
-                    messagesContainer.appendChild(msgDiv);
+                    msgContainer.appendChild(div);
                 });
-                
-                scrollToBottom();
-                
-                // Update last message in sidebar
-                if (!snapshot.empty) {
-                    const lastMsg = snapshot.docs[snapshot.docs.length - 1].data();
-                    const sidebarMsg = document.getElementById('last-message');
-                    const sidebarTime = document.getElementById('last-time');
-                    if(sidebarMsg) sidebarMsg.textContent = (lastMsg.uid === currentUserId ? "You: " : lastMsg.user + ": ") + lastMsg.text;
-                    if(sidebarTime && lastMsg.createdAt) sidebarTime.textContent = formatTime(lastMsg.createdAt);
-                }
+                msgContainer.scrollTop = msgContainer.scrollHeight;
             });
         }
-        
-        // Prevent XSS
-        function escapeHtml(text) {
-            if (!text) return text;
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
 
+        document.getElementById('send-btn').onclick = sendMessage;
+        msgInput.onkeypress = (e) => e.key === 'Enter' && sendMessage();
+        document.getElementById('logout-btn').onclick = () => { localStorage.clear(); location.reload(); };
+
+        checkAuth();
     </script>
 </body>
 </html>
