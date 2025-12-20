@@ -3,92 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Web Clone - Realtime</title>
+    <title>WhatsApp Web - DM & Perfil</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        ::-webkit-scrollbar { width: 6px !important; }
-        ::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.2); }
-        .chat-bg {
-            background-color: #efeae2;
-            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-            background-repeat: repeat;
-        }
-        .wa-green-bg { background-color: #00a884; }
-        .message-out { background-color: #d9fdd3; border-radius: 7.5px 0 7.5px 7.5px; align-self: flex-end; position: relative; }
-        .message-in { background-color: #ffffff; border-radius: 0 7.5px 7.5px 7.5px; align-self: flex-start; position: relative; }
-        .message-out::before { content: ""; position: absolute; top: 0; right: -8px; border-bottom: 10px solid transparent; border-left: 10px solid #d9fdd3; }
-        .message-in::before { content: ""; position: absolute; top: 0; left: -8px; border-bottom: 10px solid transparent; border-right: 10px solid #ffffff; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); }
+        .chat-bg { background-color: #efeae2; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
+        .message-out { background-color: #d9fdd3; align-self: flex-end; border-radius: 7px 0 7px 7px; }
+        .message-in { background-color: #fff; align-self: flex-start; border-radius: 0 7px 7px 7px; }
+        .active-chat { background-color: #f0f2f5; }
     </style>
 </head>
-<body class="bg-[#d1d7db] h-screen overflow-hidden font-sans">
+<body class="bg-[#d1d7db] h-screen overflow-hidden font-sans flex items-center justify-center">
 
-    <div class="absolute top-0 w-full h-32 wa-green-bg z-0"></div>
-
-    <div id="login-modal" class="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-96 text-center">
-            <div class="text-[#00a884] text-5xl mb-4"><i class="fab fa-whatsapp"></i></div>
-            <h2 class="text-2xl font-bold mb-2 text-gray-800">WhatsApp Web</h2>
-            <p class="text-gray-600 mb-6">Entre com seu nome para conversar ao vivo</p>
-            <input type="text" id="username-input" class="w-full px-4 py-2 border rounded mb-4 focus:outline-[#00a884]" placeholder="Seu nome...">
-            <button id="login-btn" class="w-full bg-[#00a884] text-white py-2 rounded font-semibold hover:bg-[#008f6f] transition">Começar Chat</button>
+    <div id="profile-modal" class="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg w-80 shadow-2xl">
+            <h2 class="text-xl font-bold mb-4">Editar Perfil</h2>
+            <input type="text" id="edit-name" class="w-full border p-2 mb-2 rounded" placeholder="Novo nome">
+            <input type="text" id="edit-pic" class="w-full border p-2 mb-4 rounded" placeholder="URL da Foto">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeProfile()" class="px-4 py-2 text-gray-500">Cancelar</button>
+                <button onclick="saveProfile()" class="px-4 py-2 bg-[#00a884] text-white rounded">Salvar</button>
+            </div>
         </div>
     </div>
 
-    <div id="app-container" class="relative z-10 container mx-auto h-[95vh] top-[2.5vh] flex shadow-lg bg-white hidden">
+    <div id="app" class="w-full max-w-[1400px] h-[95vh] bg-white flex shadow-2xl overflow-hidden relative">
         
-        <div class="w-1/3 border-r border-gray-300 flex flex-col bg-white">
-            <div class="bg-[#f0f2f5] px-4 py-3 flex justify-between items-center border-b">
-                <img id="my-avatar" class="w-10 h-10 rounded-full" src="">
-                <div class="flex gap-5 text-[#54656f]">
+        <div class="w-1/3 border-r flex flex-col">
+            <div class="bg-[#f0f2f5] p-3 flex justify-between items-center">
+                <img id="my-avatar" onclick="openProfile()" class="w-10 h-10 rounded-full cursor-pointer hover:opacity-80" src="">
+                <div class="flex gap-4 text-gray-600">
                     <i class="fas fa-circle-notch"></i>
                     <i class="fas fa-message"></i>
-                    <i id="logout-btn" class="fas fa-ellipsis-vertical cursor-pointer"></i>
+                    <i class="fas fa-ellipsis-vertical" onclick="localStorage.clear(); location.reload();"></i>
                 </div>
             </div>
+
             <div class="p-2">
-                <div class="bg-[#f0f2f5] rounded-lg px-4 py-1.5 flex items-center">
-                    <i class="fas fa-search text-gray-500 text-xs mr-4"></i>
-                    <input type="text" placeholder="Pesquisar conversa" class="bg-transparent text-sm w-full focus:outline-none">
+                <div class="bg-[#f0f2f5] rounded-lg px-4 py-2 flex items-center">
+                    <i class="fas fa-search text-gray-400 mr-4"></i>
+                    <input type="text" placeholder="Conversas" class="bg-transparent w-full outline-none text-sm">
                 </div>
             </div>
-            <div class="flex-1 overflow-y-auto">
-                <div class="flex items-center gap-3 p-3 bg-[#f0f2f5] border-b border-gray-200">
-                    <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl">
-                        <i class="fas fa-globe"></i>
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between items-center"><h3 class="font-medium">Grupo Geral (Live)</h3><span id="last-time" class="text-xs text-gray-500">agora</span></div>
-                        <p id="last-message" class="text-sm text-gray-500 truncate">Clique para ver as mensagens...</p>
-                    </div>
+
+            <div id="user-list" class="flex-1 overflow-y-auto">
+                <div onclick="selectChat('global')" id="chat-global" class="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 border-b active-chat">
+                    <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white"><i class="fas fa-globe"></i></div>
+                    <div class="flex-1 font-medium">Chat Global</div>
                 </div>
             </div>
         </div>
 
-        <div class="flex-1 flex flex-col relative chat-bg">
-            <div class="bg-[#f0f2f5] px-4 py-3 flex items-center justify-between border-b z-10">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white"><i class="fas fa-globe"></i></div>
-                    <div><h3 class="font-medium">Grupo Geral</h3><p class="text-[11px] text-green-600">vários usuários online</p></div>
-                </div>
+        <div class="flex-1 flex flex-col chat-bg relative">
+            <div id="chat-header" class="bg-[#f0f2f5] p-3 flex items-center gap-4 border-b z-10">
+                <img id="header-img" class="w-10 h-10 rounded-full hidden" src="">
+                <div id="header-icon" class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white"><i class="fas fa-globe"></i></div>
+                <h3 id="header-name" class="font-medium">Chat Global</h3>
             </div>
 
-            <div id="messages-container" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2 relative z-0">
-                </div>
+            <div id="messages" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
 
-            <div class="bg-[#f0f2f5] px-4 py-3 flex items-center gap-4 z-10">
-                <i class="far fa-face-smile text-2xl text-[#54656f] cursor-pointer"></i>
-                <input type="text" id="message-input" class="flex-1 px-4 py-2 rounded-lg focus:outline-none" placeholder="Digite uma mensagem">
-                <button id="send-btn" class="text-[#54656f]"><i class="fas fa-paper-plane text-2xl"></i></button>
+            <div class="bg-[#f0f2f5] p-3 flex items-center gap-4">
+                <input type="text" id="msg-input" class="flex-1 p-2 rounded-lg outline-none" placeholder="Mensagem">
+                <button id="send-btn" class="text-gray-600"><i class="fas fa-paper-plane text-2xl"></i></button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // CONFIGURAÇÃO REALTIME (ID FIXO PARA TODOS)
         const firebaseConfig = {
             apiKey: "AIzaSyC0DhQ-EUs3Azqn7_tbB-W3S9ko0DaUWls",
             authDomain: "ghostchat-app-3a3f0.firebaseapp.com",
@@ -100,76 +87,102 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const colRef = collection(db, "global_messages");
+        
+        let myId = localStorage.getItem('wa_uid') || 'u' + Math.floor(Math.random() * 100000);
+        localStorage.setItem('wa_uid', myId);
+        
+        let myName = localStorage.getItem('wa_name') || 'Usuário';
+        let myPic = localStorage.getItem('wa_pic') || `https://ui-avatars.com/api/?name=${myName}`;
+        let activeChatId = 'global';
+        let unsubscribe = null;
 
-        let user = localStorage.getItem('wa_name');
-        let uid = localStorage.getItem('wa_uid') || 'u_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('wa_uid', uid);
+        // Atualizar perfil no Firebase para os outros verem
+        async function updatePresence() {
+            await setDoc(doc(db, "users", myId), { name: myName, pic: myPic, id: myId, lastSeen: serverTimestamp() });
+        }
 
-        const loginModal = document.getElementById('login-modal');
-        const appContainer = document.getElementById('app-container');
-        const msgInput = document.getElementById('message-input');
-        const msgContainer = document.getElementById('messages-container');
+        // Listar usuários para DM
+        onSnapshot(collection(db, "users"), (snap) => {
+            const list = document.getElementById('user-list');
+            list.innerHTML = `<div onclick="location.reload()" class="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 border-b ${activeChatId==='global'?'active-chat':''}">
+                <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white"><i class="fas fa-globe"></i></div>
+                <div class="flex-1 font-medium">Chat Global</div>
+            </div>`;
+            snap.forEach(u => {
+                const data = u.data();
+                if(data.id === myId) return;
+                const div = document.createElement('div');
+                div.className = `flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 border-b ${activeChatId.includes(data.id)?'active-chat':''}`;
+                div.onclick = () => startPrivateChat(data);
+                div.innerHTML = `
+                    <img class="w-12 h-12 rounded-full" src="${data.pic}">
+                    <div class="flex-1 font-medium">${data.name}</div>
+                `;
+                list.appendChild(div);
+            });
+        });
 
-        // Sistema de Login
-        document.getElementById('login-btn').onclick = () => {
-            const name = document.getElementById('username-input').value.trim();
-            if(name) {
-                user = name;
-                localStorage.setItem('wa_name', name);
-                init();
-            }
-        };
+        function startPrivateChat(target) {
+            activeChatId = myId < target.id ? `${myId}_${target.id}` : `${target.id}_${myId}`;
+            document.getElementById('header-name').innerText = target.name;
+            document.getElementById('header-img').src = target.pic;
+            document.getElementById('header-img').classList.remove('hidden');
+            document.getElementById('header-icon').classList.add('hidden');
+            loadMessages();
+        }
 
-        function init() {
-            loginModal.classList.add('hidden');
-            appContainer.classList.remove('hidden');
-            appContainer.classList.add('flex');
-            document.getElementById('my-avatar').src = `https://ui-avatars.com/api/?name=${user}&background=00a884&color=fff`;
-            
-            // ESCUTA EM TEMPO REAL
-            const q = query(colRef, orderBy("timestamp", "asc"), limit(50));
-            onSnapshot(q, (snapshot) => {
-                msgContainer.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const d = doc.data();
-                    const isMe = d.uid === uid;
-                    const time = d.timestamp ? new Date(d.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-                    
+        function loadMessages() {
+            if(unsubscribe) unsubscribe();
+            const q = query(collection(db, "chats", activeChatId, "messages"), orderBy("time", "asc"));
+            unsubscribe = onSnapshot(q, (snap) => {
+                const container = document.getElementById('messages');
+                container.innerHTML = '';
+                snap.forEach(m => {
+                    const d = m.data();
+                    const isMe = d.senderId === myId;
                     const div = document.createElement('div');
-                    div.className = `flex w-full mb-1 ${isMe ? 'justify-end' : 'justify-start'}`;
-                    div.innerHTML = `
-                        <div class="${isMe ? 'message-out' : 'message-in'} max-w-[75%] px-3 py-1.5 shadow-sm text-sm">
-                            ${!isMe ? `<div class="text-[11px] font-bold text-orange-600 mb-0.5">${d.user}</div>` : ''}
-                            <div class="flex flex-col">
-                                <span class="text-[#111b21] pb-1 pr-10">${d.text}</span>
-                                <span class="text-[10px] text-gray-500 self-end">${time} ${isMe ? '<i class="fas fa-check-double text-blue-400 ml-1"></i>' : ''}</span>
-                            </div>
-                        </div>
-                    `;
-                    msgContainer.appendChild(div);
+                    div.className = `p-2 px-3 shadow-sm max-w-[70%] ${isMe ? 'message-out' : 'message-in'}`;
+                    div.innerHTML = `<div class="text-sm">${d.text}</div>`;
+                    container.appendChild(div);
                 });
-                msgContainer.scrollTop = msgContainer.scrollHeight;
+                container.scrollTop = container.scrollHeight;
             });
         }
 
         async function send() {
-            const val = msgInput.value.trim();
-            if(!val) return;
-            msgInput.value = '';
-            await addDoc(colRef, {
-                text: val,
-                user: user,
-                uid: uid,
-                timestamp: serverTimestamp()
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if(!text) return;
+            input.value = '';
+            await addDoc(collection(db, "chats", activeChatId, "messages"), {
+                text, senderId: myId, senderName: myName, time: serverTimestamp()
             });
         }
 
-        document.getElementById('send-btn').onclick = send;
-        msgInput.onkeypress = (e) => e.key === 'Enter' && send();
-        document.getElementById('logout-btn').onclick = () => { localStorage.clear(); location.reload(); };
+        // Funções de Perfil
+        window.openProfile = () => {
+            document.getElementById('profile-modal').classList.remove('hidden');
+            document.getElementById('edit-name').value = myName;
+            document.getElementById('edit-pic').value = myPic;
+        }
+        window.closeProfile = () => document.getElementById('profile-modal').classList.add('hidden');
+        window.saveProfile = async () => {
+            myName = document.getElementById('edit-name').value;
+            myPic = document.getElementById('edit-pic').value;
+            localStorage.setItem('wa_name', myName);
+            localStorage.setItem('wa_pic', myPic);
+            document.getElementById('my-avatar').src = myPic;
+            await updatePresence();
+            closeProfile();
+        };
 
-        if(user) init();
+        document.getElementById('send-btn').onclick = send;
+        document.getElementById('msg-input').onkeypress = (e) => e.key === 'Enter' && send();
+
+        // Init
+        document.getElementById('my-avatar').src = myPic;
+        updatePresence();
+        loadMessages();
     </script>
 </body>
 </html>
