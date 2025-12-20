@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Web - DM & Perfil</title>
+    <title>WhatsApp Web - Base64 Upload</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
@@ -13,6 +13,7 @@
         .message-out { background-color: #d9fdd3; align-self: flex-end; border-radius: 7px 0 7px 7px; }
         .message-in { background-color: #fff; align-self: flex-start; border-radius: 0 7px 7px 7px; }
         .active-chat { background-color: #f0f2f5; }
+        .img-msg { max-width: 250px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body class="bg-[#d1d7db] h-screen overflow-hidden font-sans flex items-center justify-center">
@@ -20,54 +21,52 @@
     <div id="profile-modal" class="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center hidden">
         <div class="bg-white p-6 rounded-lg w-80 shadow-2xl">
             <h2 class="text-xl font-bold mb-4">Editar Perfil</h2>
-            <input type="text" id="edit-name" class="w-full border p-2 mb-2 rounded" placeholder="Novo nome">
-            <input type="text" id="edit-pic" class="w-full border p-2 mb-4 rounded" placeholder="URL da Foto">
+            <input type="text" id="edit-name" class="w-full border p-2 mb-4 rounded outline-none" placeholder="Novo nome">
+            <p class="text-xs text-gray-500 mb-1">Foto de Perfil (Base64 ou URL):</p>
+            <input type="file" id="edit-pic-file" accept="image/*" class="text-xs mb-4">
             <div class="flex justify-end gap-2">
                 <button onclick="closeProfile()" class="px-4 py-2 text-gray-500">Cancelar</button>
-                <button onclick="saveProfile()" class="px-4 py-2 bg-[#00a884] text-white rounded">Salvar</button>
+                <button id="save-profile-btn" class="px-4 py-2 bg-[#00a884] text-white rounded">Salvar</button>
             </div>
         </div>
     </div>
 
-    <div id="app" class="w-full max-w-[1400px] h-[95vh] bg-white flex shadow-2xl overflow-hidden relative">
+    <div id="app" class="w-full max-w-[1400px] h-[95vh] bg-white flex shadow-2xl overflow-hidden relative hidden">
         
-        <div class="w-1/3 border-r flex flex-col">
+        <div class="w-1/3 border-r flex flex-col min-w-[300px]">
             <div class="bg-[#f0f2f5] p-3 flex justify-between items-center">
-                <img id="my-avatar" onclick="openProfile()" class="w-10 h-10 rounded-full cursor-pointer hover:opacity-80" src="">
+                <img id="my-avatar" onclick="openProfile()" class="w-10 h-10 rounded-full cursor-pointer object-cover" src="">
                 <div class="flex gap-4 text-gray-600">
                     <i class="fas fa-circle-notch"></i>
                     <i class="fas fa-message"></i>
-                    <i class="fas fa-ellipsis-vertical" onclick="localStorage.clear(); location.reload();"></i>
+                    <i class="fas fa-right-from-bracket cursor-pointer" onclick="localStorage.clear(); location.reload();"></i>
                 </div>
             </div>
 
-            <div class="p-2">
-                <div class="bg-[#f0f2f5] rounded-lg px-4 py-2 flex items-center">
-                    <i class="fas fa-search text-gray-400 mr-4"></i>
-                    <input type="text" placeholder="Conversas" class="bg-transparent w-full outline-none text-sm">
-                </div>
-            </div>
-
-            <div id="user-list" class="flex-1 overflow-y-auto">
-                <div onclick="selectChat('global')" id="chat-global" class="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 border-b active-chat">
+            <div id="user-list" class="flex-1 overflow-y-auto bg-white">
+                <div onclick="location.reload()" class="p-4 border-b flex items-center gap-3 cursor-pointer hover:bg-gray-100">
                     <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white"><i class="fas fa-globe"></i></div>
-                    <div class="flex-1 font-medium">Chat Global</div>
+                    <span class="font-medium">Chat Global</span>
                 </div>
-            </div>
+                </div>
         </div>
 
         <div class="flex-1 flex flex-col chat-bg relative">
-            <div id="chat-header" class="bg-[#f0f2f5] p-3 flex items-center gap-4 border-b z-10">
-                <img id="header-img" class="w-10 h-10 rounded-full hidden" src="">
+            <div class="bg-[#f0f2f5] p-3 flex items-center gap-4 border-b z-10">
+                <img id="header-img" class="w-10 h-10 rounded-full object-cover hidden" src="">
                 <div id="header-icon" class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white"><i class="fas fa-globe"></i></div>
                 <h3 id="header-name" class="font-medium">Chat Global</h3>
             </div>
 
             <div id="messages" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
 
-            <div class="bg-[#f0f2f5] p-3 flex items-center gap-4">
-                <input type="text" id="msg-input" class="flex-1 p-2 rounded-lg outline-none" placeholder="Mensagem">
-                <button id="send-btn" class="text-gray-600"><i class="fas fa-paper-plane text-2xl"></i></button>
+            <div class="bg-[#f0f2f5] p-3 flex items-center gap-4 shadow-inner">
+                <label class="cursor-pointer text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-paperclip text-xl"></i>
+                    <input type="file" id="file-input" accept="image/*" class="hidden">
+                </label>
+                <input type="text" id="msg-input" class="flex-1 p-2 rounded-lg outline-none px-4" placeholder="Mensagem">
+                <button id="send-btn" class="text-[#00a884]"><i class="fas fa-paper-plane text-2xl"></i></button>
             </div>
         </div>
     </div>
@@ -87,101 +86,124 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
-        let myId = localStorage.getItem('wa_uid') || 'u' + Math.floor(Math.random() * 100000);
+
+        let myId = localStorage.getItem('wa_uid') || 'u' + Date.now();
         localStorage.setItem('wa_uid', myId);
-        
-        let myName = localStorage.getItem('wa_name') || 'Usuário';
+        let myName = localStorage.getItem('wa_name') || 'Novo Usuário';
         let myPic = localStorage.getItem('wa_pic') || `https://ui-avatars.com/api/?name=${myName}`;
         let activeChatId = 'global';
-        let unsubscribe = null;
+        let unsub = null;
 
-        // Atualizar perfil no Firebase para os outros verem
-        async function updatePresence() {
-            await setDoc(doc(db, "users", myId), { name: myName, pic: myPic, id: myId, lastSeen: serverTimestamp() });
+        // --- FUNÇÕES DE AUXÍLIO ---
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        async function updateProfile() {
+            await setDoc(doc(db, "users", myId), { id: myId, name: myName, pic: myPic, lastSeen: serverTimestamp() });
+            document.getElementById('my-avatar').src = myPic;
         }
 
-        // Listar usuários para DM
+        // --- SISTEMA DE CHAT ---
+        function loadMessages() {
+            if(unsub) unsub();
+            const q = query(collection(db, "chats", activeChatId, "messages"), orderBy("time", "asc"));
+            unsub = onSnapshot(q, (snap) => {
+                const box = document.getElementById('messages');
+                box.innerHTML = '';
+                snap.forEach(d => {
+                    const m = d.data();
+                    const isMe = m.senderId === myId;
+                    const div = document.createElement('div');
+                    div.className = `p-2 px-3 shadow-sm max-w-[80%] ${isMe ? 'message-out' : 'message-in'}`;
+                    
+                    // Verifica se é imagem ou texto
+                    let content = m.type === 'image' 
+                        ? `<img src="${m.text}" class="img-msg" onclick="window.open('${m.text}')">` 
+                        : `<div class="text-sm">${m.text}</div>`;
+
+                    div.innerHTML = `
+                        ${!isMe ? `<div class="text-[10px] font-bold text-blue-600 mb-1">${m.senderName}</div>` : ''}
+                        ${content}
+                        <div class="text-[9px] text-gray-500 text-right mt-1">${m.time ? new Date(m.time.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</div>
+                    `;
+                    box.appendChild(div);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        async function sendMessage(text, type = 'text') {
+            if(!text) return;
+            await addDoc(collection(db, "chats", activeChatId, "messages"), {
+                text, type, senderId: myId, senderName: myName, time: serverTimestamp()
+            });
+        }
+
+        // --- EVENTOS ---
+        document.getElementById('send-btn').onclick = () => {
+            const input = document.getElementById('msg-input');
+            sendMessage(input.value.trim());
+            input.value = '';
+        };
+
+        document.getElementById('file-input').onchange = async (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                if(file.size > 700000) return alert("Imagem muito grande! Máximo 700KB para Base64.");
+                const base64 = await toBase64(file);
+                sendMessage(base64, 'image');
+            }
+        };
+
+        // Carregar lista de usuários (DMs)
         onSnapshot(collection(db, "users"), (snap) => {
             const list = document.getElementById('user-list');
-            list.innerHTML = `<div onclick="location.reload()" class="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 border-b ${activeChatId==='global'?'active-chat':''}">
-                <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white"><i class="fas fa-globe"></i></div>
-                <div class="flex-1 font-medium">Chat Global</div>
-            </div>`;
+            // Mantém o Global no topo
+            list.innerHTML = list.firstElementChild.outerHTML; 
             snap.forEach(u => {
-                const data = u.data();
-                if(data.id === myId) return;
+                const user = u.data();
+                if(user.id === myId) return;
                 const div = document.createElement('div');
-                div.className = `flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 border-b ${activeChatId.includes(data.id)?'active-chat':''}`;
-                div.onclick = () => startPrivateChat(data);
-                div.innerHTML = `
-                    <img class="w-12 h-12 rounded-full" src="${data.pic}">
-                    <div class="flex-1 font-medium">${data.name}</div>
-                `;
+                div.className = "p-4 border-b flex items-center gap-3 cursor-pointer hover:bg-gray-100 transition";
+                div.onclick = () => {
+                    activeChatId = myId < user.id ? `${myId}_${user.id}` : `${user.id}_${myId}`;
+                    document.getElementById('header-name').innerText = user.name;
+                    document.getElementById('header-img').src = user.pic;
+                    document.getElementById('header-img').classList.remove('hidden');
+                    document.getElementById('header-icon').classList.add('hidden');
+                    loadMessages();
+                };
+                div.innerHTML = `<img src="${user.pic}" class="w-12 h-12 rounded-full object-cover"><span class="font-medium">${user.name}</span>`;
                 list.appendChild(div);
             });
         });
 
-        function startPrivateChat(target) {
-            activeChatId = myId < target.id ? `${myId}_${target.id}` : `${target.id}_${myId}`;
-            document.getElementById('header-name').innerText = target.name;
-            document.getElementById('header-img').src = target.pic;
-            document.getElementById('header-img').classList.remove('hidden');
-            document.getElementById('header-icon').classList.add('hidden');
-            loadMessages();
-        }
-
-        function loadMessages() {
-            if(unsubscribe) unsubscribe();
-            const q = query(collection(db, "chats", activeChatId, "messages"), orderBy("time", "asc"));
-            unsubscribe = onSnapshot(q, (snap) => {
-                const container = document.getElementById('messages');
-                container.innerHTML = '';
-                snap.forEach(m => {
-                    const d = m.data();
-                    const isMe = d.senderId === myId;
-                    const div = document.createElement('div');
-                    div.className = `p-2 px-3 shadow-sm max-w-[70%] ${isMe ? 'message-out' : 'message-in'}`;
-                    div.innerHTML = `<div class="text-sm">${d.text}</div>`;
-                    container.appendChild(div);
-                });
-                container.scrollTop = container.scrollHeight;
-            });
-        }
-
-        async function send() {
-            const input = document.getElementById('msg-input');
-            const text = input.value.trim();
-            if(!text) return;
-            input.value = '';
-            await addDoc(collection(db, "chats", activeChatId, "messages"), {
-                text, senderId: myId, senderName: myName, time: serverTimestamp()
-            });
-        }
-
-        // Funções de Perfil
-        window.openProfile = () => {
-            document.getElementById('profile-modal').classList.remove('hidden');
-            document.getElementById('edit-name').value = myName;
-            document.getElementById('edit-pic').value = myPic;
-        }
+        // Modal Perfil
+        window.openProfile = () => document.getElementById('profile-modal').classList.remove('hidden');
         window.closeProfile = () => document.getElementById('profile-modal').classList.add('hidden');
-        window.saveProfile = async () => {
-            myName = document.getElementById('edit-name').value;
-            myPic = document.getElementById('edit-pic').value;
+        document.getElementById('save-profile-btn').onclick = async () => {
+            const nameInp = document.getElementById('edit-name').value;
+            const fileInp = document.getElementById('edit-pic-file').files[0];
+            
+            if(nameInp) myName = nameInp;
+            if(fileInp) {
+                if(fileInp.size > 200000) return alert("Foto de perfil muito pesada!");
+                myPic = await toBase64(fileInp);
+            }
+            
             localStorage.setItem('wa_name', myName);
             localStorage.setItem('wa_pic', myPic);
-            document.getElementById('my-avatar').src = myPic;
-            await updatePresence();
+            await updateProfile();
             closeProfile();
         };
 
-        document.getElementById('send-btn').onclick = send;
-        document.getElementById('msg-input').onkeypress = (e) => e.key === 'Enter' && send();
-
-        // Init
-        document.getElementById('my-avatar').src = myPic;
-        updatePresence();
+        // Início
+        document.getElementById('app').classList.remove('hidden');
+        updateProfile();
         loadMessages();
     </script>
 </body>
