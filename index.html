@@ -1,851 +1,424 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp Web Clone</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .chat-bg { background-color: #efeae2; background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4cfc6' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
-        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
-        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-        .scrollbar-thin::-webkit-scrollbar-thumb { background: #374045; border-radius: 3px; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        .message-out { background-color: #005c4b; color: #e9edef; }
-        .message-in { background-color: #202c33; color: #e9edef; }
-        /* Ajuste de cores das mensagens para o tema escuro */
-        .message-out::after { content: ''; position: absolute; right: -8px; top: 0; border-width: 8px; border-style: solid; border-color: #005c4b transparent transparent transparent; }
-        .message-in::after { content: ''; position: absolute; left: -8px; top: 0; border-width: 8px; border-style: solid; border-color: #202c33 transparent transparent transparent; }
+        /* WhatsApp Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px !important;
+            height: 6px !important;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-track {
+            background: hsla(0, 0%, 100%, 0.1);
+        }
         
-        .typing-indicator span { animation: blink 1.4s infinite both; }
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes blink { 0%, 60%, 100% { opacity: 0; } 30% { opacity: 1; } }
-        .online-dot { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; max-height: 200px; overflow-y: auto; }
-        .emoji-btn { font-size: 24px; padding: 4px; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
-        .emoji-btn:hover { background: #374045; }
+        /* Chat Background with Doodle pattern approximation */
+        .chat-bg {
+            background-color: #efeae2;
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-repeat: repeat;
+            opacity: 0.9;
+        }
+
+        .wa-green-bg {
+            background-color: #00a884;
+        }
+        
+        .message-out {
+            background-color: #d9fdd3;
+            border-radius: 7.5px 0px 7.5px 7.5px;
+        }
+        
+        .message-in {
+            background-color: #ffffff;
+            border-radius: 0px 7.5px 7.5px 7.5px;
+        }
+
+        /* Triangle hacks for speech bubbles */
+        .message-out::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: -8px;
+            width: 0;
+            height: 0;
+            border-top: 0px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 10px solid #d9fdd3;
+        }
+
+        .message-in::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -8px;
+            width: 0;
+            height: 0;
+            border-top: 0px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-right: 10px solid #ffffff;
+        }
     </style>
 </head>
-<body class="bg-[#111b21] h-screen overflow-hidden">
-    <div id="authScreen" class="flex items-center justify-center h-screen">
-        <div class="bg-[#202c33] p-8 rounded-lg shadow-2xl w-96">
-            <div class="flex items-center justify-center mb-6">
-                <svg class="w-16 h-16 text-[#00a884]" viewBox="0 0 39 39" fill="currentColor">
-                    <path d="M10.7 32.8l.6.3c2.5 1.5 5.3 2.2 8.1 2.2 8.8 0 16-7.2 16-16 0-4.2-1.7-8.3-4.7-11.3s-7-4.7-11.3-4.7c-8.8 0-16 7.2-15.9 16.1 0 3 .9 5.9 2.4 8.4l.4.6-1.6 5.9 6-1.5z"></path>
-                    <path fill="#111b21" d="M32.4 6.4C29 2.9 24.3 1 19.5 1 9.3 1 1.1 9.3 1.2 19.4c0 3.2.9 6.3 2.4 9.1L1 38l9.7-2.5c2.7 1.5 5.7 2.2 8.7 2.2 10.1 0 18.3-8.3 18.3-18.4 0-4.9-1.9-9.5-5.3-12.9zM19.5 34.6c-2.7 0-5.4-.7-7.7-2.1l-.6-.3-5.8 1.5L6.9 28l-.4-.6c-1.5-2.4-2.3-5.2-2.3-8 0-8.4 6.8-15.2 15.3-15.2 4.1 0 7.9 1.6 10.8 4.5 2.9 2.9 4.5 6.7 4.5 10.8-.1 8.4-6.9 15.1-15.3 15.1zm8.4-11.3c-.5-.2-2.7-1.3-3.1-1.5-.4-.2-.7-.2-1 .2-.3.5-1.2 1.5-1.5 1.8-.3.3-.5.3-1 .1s-2-0.7-3.8-2.3c-1.4-1.2-2.3-2.8-2.6-3.2-.3-.5 0-.7.2-1 .2-.2.5-.5.7-.8.2-.3.3-.5.5-.8.2-.3.1-.6 0-.8-.1-.2-1-2.4-1.4-3.3-.4-.9-.7-.8-1-.8-.3 0-.6 0-.9 0s-.8.1-1.3.6-1.6 1.6-1.6 3.9 1.7 4.5 1.9 4.8c.2.3 3.3 5 7.9 7 1.1.5 2 .8 2.6 1 1.1.3 2.1.3 2.9.2.9-.1 2.7-1.1 3.1-2.2.4-1.1.4-2 .3-2.2-.1-.2-.4-.3-.9-.5z"></path>
-                </svg>
-            </div>
-            <h1 class="text-2xl font-light text-white text-center mb-6">WhatsApp Web</h1>
-            
-            <div id="loginForm" class="space-y-4">
-                <input type="email" id="loginEmail" placeholder="Email" 
-                    class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
-                <input type="password" id="loginPassword" placeholder="Senha" 
-                    class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
-                <button onclick="login()" 
-                    class="w-full py-3 bg-[#00a884] text-white rounded-lg hover:bg-[#02906f] transition-colors font-medium">
-                    Entrar
-                </button>
-                <p class="text-center text-[#8696a0]">
-                    Não tem conta? <button onclick="showRegister()" class="text-[#00a884] hover:underline">Registrar</button>
-                </p>
-            </div>
+<body class="bg-[#d1d7db] h-screen overflow-hidden relative font-sans">
 
-            <div id="registerForm" class="space-y-4 hidden">
-                <input type="text" id="registerName" placeholder="Nome de usuário" 
-                    class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
-                <input type="email" id="registerEmail" placeholder="Email" 
-                    class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
-                <input type="password" id="registerPassword" placeholder="Senha (mín. 6 caracteres)" 
-                    class="w-full px-4 py-3 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-400">
-                <button onclick="register()" 
-                    class="w-full py-3 bg-[#00a884] text-white rounded-lg hover:bg-[#02906f] transition-colors font-medium">
-                    Criar conta
-                </button>
-                <p class="text-center text-[#8696a0]">
-                    Já tem conta? <button onclick="showLogin()" class="text-[#00a884] hover:underline">Entrar</button>
-                </p>
-            </div>
+    <!-- Green Header Strip -->
+    <div class="absolute top-0 w-full h-32 wa-green-bg z-0"></div>
 
-            <div id="authError" class="hidden mt-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-400 text-sm text-center"></div>
+    <!-- Login Modal -->
+    <div id="login-modal" class="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-96 text-center">
+            <div class="text-[#00a884] text-5xl mb-4">
+                <i class="fab fa-whatsapp"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">WhatsApp Web</h2>
+            <p class="text-gray-600 mb-6">Enter your name to join the chat</p>
+            <input type="text" id="username-input" class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-[#00a884] mb-4" placeholder="Your Display Name">
+            <button id="login-btn" class="w-full bg-[#00a884] text-white py-2 rounded hover:bg-[#008f6f] transition font-semibold">Start Chatting</button>
         </div>
     </div>
 
-    <div id="mainApp" class="hidden h-screen flex">
-        <div id="leftPanel" class="w-[30%] min-w-[300px] bg-[#111b21] flex flex-col border-r border-[#222d34]">
-            <div class="h-14 bg-[#202c33] flex items-center justify-between px-4">
-                <div class="flex items-center gap-3 cursor-pointer" onclick="showProfileModal()">
-                    <div id="myAvatarHeader" class="w-10 h-10 rounded-full bg-[#6b7175] flex items-center justify-center text-white font-medium overflow-hidden">
-                        <img id="myAvatarImg" class="w-full h-full object-cover hidden" />
-                        <span id="myAvatarLetter"></span>
+    <!-- Main App Container -->
+    <div id="app-container" class="relative z-10 container mx-auto h-[95vh] top-[2.5vh] flex shadow-lg overflow-hidden bg-white hidden">
+        
+        <!-- Sidebar (Left) -->
+        <div class="w-[30%] h-full flex flex-col border-r border-gray-300 bg-white">
+            <!-- Sidebar Header -->
+            <div class="bg-[#f0f2f5] px-4 py-3 flex justify-between items-center border-b border-gray-200">
+                <div class="w-10 h-10 rounded-full bg-gray-300 overflow-hidden cursor-pointer">
+                    <img src="https://ui-avatars.com/api/?name=Me&background=random" id="my-avatar" class="w-full h-full object-cover">
+                </div>
+                <div class="flex gap-6 text-[#54656f]">
+                    <button title="Communities"><i class="fas fa-users text-xl"></i></button>
+                    <button title="Status"><i class="fas fa-circle-notch text-xl"></i></button>
+                    <button title="New Chat"><i class="fas fa-message text-xl"></i></button>
+                    <button title="Menu" id="menu-btn"><i class="fas fa-ellipsis-vertical text-xl"></i></button>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="bg-white p-2 border-b border-gray-100">
+                <div class="bg-[#f0f2f5] rounded-lg flex items-center px-3 py-1.5">
+                    <i class="fas fa-search text-[#54656f] text-sm mr-4 pl-1"></i>
+                    <input type="text" placeholder="Search or start new chat" class="bg-transparent w-full text-sm focus:outline-none placeholder-[#54656f]">
+                </div>
+            </div>
+
+            <!-- Chat List -->
+            <div class="flex-1 overflow-y-auto bg-white" id="chat-list">
+                <!-- Global Chat Item (Default) -->
+                <div id="global-chat" class="flex items-center gap-3 p-3 cursor-pointer hover:bg-[#f0f2f5] border-b border-gray-100 bg-[#f0f2f5]">
+                    <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl">
+                        <i class="fas fa-globe"></i>
                     </div>
-                </div>
-                <div class="flex items-center gap-5 text-[#aebac1]">
-                    <button onclick="showNewChat()" class="hover:text-white" title="Nova conversa">
-                        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
-                            <path d="M19.005 3.175H4.674C3.642 3.175 3 3.789 3 4.821V21.02l3.544-3.514h12.461c1.033 0 2.064-1.06 2.064-2.093V4.821c-.001-1.032-1.032-1.646-2.064-1.646zm-4.989 9.869H7.041V11.1h6.975v1.944zm3-4H7.041V7.1h9.975v1.944z"></path>
-                        </svg>
-                    </button>
-                    <button onclick="logout()" class="hover:text-white" title="Sair">
-                        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
-                            <path d="M16 13v-2H7V8l-5 4 5 4v-3z"></path>
-                            <path d="M20 3h-9c-1.103 0-2 .897-2 2v4h2V5h9v14h-9v-4H9v4c0 1.103.897 2 2 2h9c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2z"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="p-2 bg-[#111b21]">
-                <div class="flex items-center bg-[#202c33] rounded-lg px-4 py-2">
-                    <svg viewBox="0 0 24 24" class="w-5 h-5 text-[#8696a0]" fill="currentColor">
-                        <path d="M15.009 13.805h-.636l-.22-.219a5.184 5.184 0 0 0 1.256-3.386 5.207 5.207 0 1 0-5.207 5.208 5.183 5.183 0 0 0 3.385-1.255l.221.22v.635l4.004 3.999 1.194-1.195-3.997-4.007zm-4.808 0a3.605 3.605 0 1 1 0-7.21 3.605 3.605 0 0 1 0 7.21z"></path>
-                    </svg>
-                    <input type="text" id="searchInput" oninput="renderChatsList()" placeholder="Pesquisar conversas" 
-                        class="bg-transparent text-white text-sm ml-4 w-full focus:outline-none placeholder-[#8696a0]">
-                </div>
-            </div>
-
-            <div id="chatsList" class="flex-1 overflow-y-auto scrollbar-thin"></div>
-        </div>
-
-        <div class="flex-1 flex flex-col relative bg-[#222e35]">
-            <div id="emptyState" class="absolute inset-0 z-0 flex flex-col items-center justify-center bg-[#222e35]">
-                <div class="text-center">
-                    <div class="w-[250px] h-[250px] mx-auto mb-8 rounded-full bg-[#364147] flex items-center justify-center">
-                        <svg class="w-32 h-32 text-[#8696a0]" viewBox="0 0 303 172" fill="currentColor">
-                            <path d="M229.565 160.229c32.647-16.166 54.391-50.161 54.391-89.073 0-55.098-45.022-99.775-100.554-99.775-34.178 0-64.377 17.14-82.298 43.249-4.829-.632-9.754-.964-14.759-.964C38.63 13.666 0 52.056 0 99.573c0 21.026 7.567 40.283 20.133 55.264-.874 6.676-3.876 14.264-8.963 22.396l-.27.467c32.75-5.2 58.242-16.794 76.17-32.544 7.382 1.985 15.124 3.027 23.12 3.027 3.157 0 6.278-.146 9.357-.422 17.696 22.478 45.163 36.909 76.018 36.909 6.318 0 12.487-.616 18.464-1.79 13.233 12.326 31.933 22.233 56.536 26.9-5.09-8.132-8.092-15.72-8.966-22.391z"></path>
-                        </svg>
-                    </div>
-                    <h2 class="text-[#e9edef] text-3xl font-light mb-4">WhatsApp Web</h2>
-                    <p class="text-[#8696a0] max-w-md">Envie e receba mensagens em tempo real.<br>Clique em "Nova conversa" para começar!</p>
-                </div>
-            </div>
-
-            <div id="chatView" class="hidden flex-1 flex flex-col z-10 h-full">
-                <div class="h-14 bg-[#202c33] flex items-center justify-between px-4">
-                    <div class="flex items-center gap-3 cursor-pointer">
-                        <button class="md:hidden mr-2 text-[#aebac1]" onclick="closeChat()">
-                            <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
-                                <path d="M12 4l1.4 1.4L7.8 11H20v2H7.8l5.6 5.6L12 20l-8-8 8-8z"></path>
-                            </svg>
-                        </button>
-                        <div id="chatAvatar" class="w-10 h-10 rounded-full bg-[#6b7175] flex items-center justify-center text-white font-medium overflow-hidden">
-                            <img id="chatAvatarImg" class="w-full h-full object-cover hidden" />
-                            <span id="chatAvatarLetter"></span>
+                    <div class="flex-1 border-b border-gray-100 pb-2 -mb-2">
+                        <div class="flex justify-between items-center mb-1">
+                            <h3 class="font-medium text-[#111b21]">Global Chat</h3>
+                            <span class="text-xs text-[#667781]" id="last-time">Now</span>
                         </div>
-                        <div>
-                            <h3 id="chatName" class="text-white font-medium"></h3>
-                            <p id="chatStatus" class="text-[#8696a0] text-xs"></p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-5 text-[#aebac1]">
-                        <span id="chatUserId" class="text-xs text-[#8696a0]"></span>
+                        <p class="text-sm text-[#667781] truncate" id="last-message">Tap to join the global conversation</p>
                     </div>
                 </div>
-
-                <div id="messagesArea" class="flex-1 overflow-y-auto chat-bg p-4 scrollbar-thin flex flex-col space-y-2"></div>
-
-                <div id="typingIndicator" class="hidden bg-[#202c33] px-4 py-2">
-                    <span class="text-[#00a884] text-sm">digitando<span class="typing-indicator"><span>.</span><span>.</span><span>.</span></span></span>
-                </div>
-
-                <div class="bg-[#202c33] px-4 py-3 flex items-center gap-3 relative">
-                    <div id="emojiPicker" class="hidden absolute bottom-16 left-4 bg-[#202c33] rounded-lg p-3 shadow-xl border border-[#374045] w-80 z-50">
-                        <div class="emoji-grid scrollbar-thin" id="emojiGrid"></div>
+                <!-- Additional static fake chats for visual fidelity -->
+                <div class="flex items-center gap-3 p-3 cursor-pointer hover:bg-[#f0f2f5] border-b border-gray-100">
+                    <div class="w-12 h-12 rounded-full bg-gray-300 overflow-hidden">
+                        <img src="https://ui-avatars.com/api/?name=Alice&background=FF5733&color=fff" class="w-full h-full object-cover">
                     </div>
-                    
-                    <button onclick="toggleEmojiPicker()" class="text-[#8696a0] hover:text-[#aebac1]">
-                        <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor">
-                            <path d="M9.153 11.603c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962zm-3.204 1.362c-.026-.307-.131 5.218 6.063 5.551 6.066-.25 6.066-5.551 6.066-5.551-6.078 1.416-12.129 0-12.129 0zm11.363 1.108s-.669 1.959-5.051 1.959c-3.505 0-5.388-1.164-5.607-1.959 0 0 5.912 1.055 10.658 0zM11.804 1.011C5.609 1.011.978 6.033.978 12.228s4.826 10.761 11.021 10.761S23.02 18.423 23.02 12.228c.001-6.195-5.021-11.217-11.216-11.217zM12 21.354c-5.273 0-9.381-3.886-9.381-9.159s3.942-9.548 9.215-9.548 9.548 4.275 9.548 9.548c-.001 5.272-4.109 9.159-9.382 9.159zm3.108-9.751c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962z"></path>
-                        </svg>
-                    </button>
                     <div class="flex-1">
-                        <input type="text" id="messageInput" placeholder="Digite uma mensagem" 
-                            onkeydown="handleKeyDown(event)" oninput="handleTyping()"
-                            class="w-full px-4 py-2 bg-[#2a3942] text-white rounded-lg focus:outline-none placeholder-[#8696a0]">
+                        <div class="flex justify-between items-center mb-1">
+                            <h3 class="font-medium text-[#111b21]">Alice</h3>
+                            <span class="text-xs text-[#667781]">Yesterday</span>
+                        </div>
+                        <p class="text-sm text-[#667781] truncate">Hey! How are you?</p>
                     </div>
-                    <button onclick="sendMessage()" class="text-[#00a884] hover:text-[#02906f] transition-colors">
-                        <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor">
-                            <path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path>
-                        </svg>
-                    </button>
+                </div>
+                 <div class="flex items-center gap-3 p-3 cursor-pointer hover:bg-[#f0f2f5] border-b border-gray-100">
+                    <div class="w-12 h-12 rounded-full bg-gray-300 overflow-hidden">
+                        <img src="https://ui-avatars.com/api/?name=Bob&background=33FF57&color=fff" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center mb-1">
+                            <h3 class="font-medium text-[#111b21]">Bob</h3>
+                            <span class="text-xs text-[#667781]">Tuesday</span>
+                        </div>
+                        <p class="text-sm text-[#667781] truncate">Are we still on for the meeting?</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="newChatModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div class="bg-[#202c33] rounded-lg w-96 max-h-[80vh] overflow-hidden">
-            <div class="p-4 border-b border-[#374045]">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-white text-lg">Nova conversa</h3>
-                    <button onclick="hideNewChat()" class="text-[#aebac1] hover:text-white">
-                        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
-                            <path d="M19.1 17.2l-5.3-5.3 5.3-5.3-1.8-1.8-5.3 5.4-5.3-5.3-1.8 1.7 5.3 5.3-5.3 5.3L6.7 19l5.3-5.3 5.3 5.3 1.8-1.8z"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div class="flex items-center bg-[#2a3942] rounded-lg px-4 py-2">
-                    <svg viewBox="0 0 24 24" class="w-5 h-5 text-[#8696a0]" fill="currentColor">
-                        <path d="M15.009 13.805h-.636l-.22-.219a5.184 5.184 0 0 0 1.256-3.386 5.207 5.207 0 1 0-5.207 5.208 5.183 5.183 0 0 0 3.385-1.255l.221.22v.635l4.004 3.999 1.194-1.195-3.997-4.007zm-4.808 0a3.605 3.605 0 1 1 0-7.21 3.605 3.605 0 0 1 0 7.21z"></path>
-                    </svg>
-                    <input type="text" id="searchUserInput" oninput="searchUsers()" placeholder="Buscar por nome ou ID" 
-                        class="bg-transparent text-white text-sm ml-4 w-full focus:outline-none placeholder-[#8696a0]">
-                </div>
-            </div>
-            <div id="usersList" class="overflow-y-auto max-h-80 scrollbar-thin"></div>
-        </div>
-    </div>
-
-    <div id="profileModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div class="bg-[#202c33] rounded-lg w-96 overflow-hidden">
-            <div class="p-4 border-b border-[#374045]">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-white text-lg">Meu Perfil</h3>
-                    <button onclick="hideProfileModal()" class="text-[#aebac1] hover:text-white">
-                        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
-                            <path d="M19.1 17.2l-5.3-5.3 5.3-5.3-1.8-1.8-5.3 5.4-5.3-5.3-1.8 1.7 5.3 5.3-5.3 5.3L6.7 19l5.3-5.3 5.3 5.3 1.8-1.8z"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <div class="p-6 space-y-4">
-                <div class="flex justify-center">
-                    <div id="profileAvatarPreview" class="w-24 h-24 rounded-full bg-[#6b7175] flex items-center justify-center text-white text-3xl font-medium overflow-hidden">
-                        <img id="profileAvatarImg" class="w-full h-full object-cover hidden" />
-                        <span id="profileAvatarLetter"></span>
+        <!-- Chat Area (Right) -->
+        <div class="w-[70%] h-full flex flex-col bg-[#efeae2] relative">
+            <!-- Chat Header -->
+            <div class="bg-[#f0f2f5] px-4 py-3 flex justify-between items-center border-b border-gray-200 z-20">
+                <div class="flex items-center gap-4 cursor-pointer">
+                    <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <h3 class="font-medium text-[#111b21]">Global Chat</h3>
+                        <span class="text-xs text-[#667781]">online</span>
                     </div>
                 </div>
-                
-                <div class="bg-[#2a3942] rounded-lg p-3">
-                    <p class="text-[#8696a0] text-xs mb-1">Seu ID (compartilhe para ser encontrado)</p>
-                    <div class="flex items-center justify-between">
-                        <span id="profileUserId" class="text-[#00a884] font-mono"></span>
-                        <button onclick="copyUserId()" class="text-[#8696a0] hover:text-white">
-                            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor">
-                                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path>
-                            </svg>
-                        </button>
+                <div class="flex gap-6 text-[#54656f]">
+                    <button><i class="fas fa-search text-xl"></i></button>
+                    <button><i class="fas fa-paperclip text-xl"></i></button>
+                    <button><i class="fas fa-ellipsis-vertical text-xl"></i></button>
+                </div>
+            </div>
+
+            <!-- Messages Area -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-10 chat-bg relative" id="messages-container">
+                <!-- Messages will be injected here -->
+                <div class="flex justify-center mb-4">
+                    <div class="bg-[#ffeecd] text-[#54656f] text-xs px-3 py-1.5 rounded-lg shadow-sm text-center">
+                        <i class="fas fa-lock text-[10px] mr-1"></i> Messages are end-to-end encrypted. No one outside of this chat, not even WhatsApp, can read or listen to them.
                     </div>
                 </div>
+            </div>
 
-                <div>
-                    <label class="text-[#8696a0] text-xs">Nome</label>
-                    <input type="text" id="profileName" 
-                        class="w-full mt-1 px-4 py-2 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884]">
+            <!-- Input Area -->
+            <div class="bg-[#f0f2f5] px-4 py-2 flex items-center gap-4 z-20">
+                <button class="text-[#54656f] hover:text-[#3b4a54]">
+                    <i class="far fa-face-smile text-2xl"></i>
+                </button>
+                <button class="text-[#54656f] hover:text-[#3b4a54]">
+                    <i class="fas fa-plus text-2xl"></i>
+                </button>
+                <div class="flex-1 bg-white rounded-lg px-4 py-2 flex items-center">
+                    <input type="text" id="message-input" class="w-full focus:outline-none text-[#111b21]" placeholder="Type a message">
                 </div>
-
-                <div>
-                    <label class="text-[#8696a0] text-xs">URL da Foto</label>
-                    <input type="url" id="profilePhoto" placeholder="https://exemplo.com/foto.jpg"
-                        class="w-full mt-1 px-4 py-2 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-500">
-                </div>
-
-                <div>
-                    <label class="text-[#8696a0] text-xs">Bio</label>
-                    <textarea id="profileBio" rows="3" placeholder="Escreva algo sobre você..."
-                        class="w-full mt-1 px-4 py-2 bg-[#2a3942] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884] placeholder-gray-500 resize-none"></textarea>
-                </div>
-
-                <button onclick="saveProfile()" 
-                    class="w-full py-3 bg-[#00a884] text-white rounded-lg hover:bg-[#02906f] transition-colors font-medium">
-                    Salvar
+                <button id="send-btn" class="text-[#54656f] hover:text-[#3b4a54]">
+                    <i class="fas fa-paper-plane text-2xl" id="send-icon"></i> <!-- Changed to send icon -->
                 </button>
             </div>
         </div>
     </div>
 
-    <script>
-        // Firebase Configuration
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyC0DhQ-EUs3Azqn7_tbB-W3S9ko0DaUWls",
             authDomain: "ghostchat-app-3a3f0.firebaseapp.com",
             projectId: "ghostchat-app-3a3f0",
             storageBucket: "ghostchat-app-3a3f0.firebasestorage.app",
             messagingSenderId: "781582052854",
-            appId: "1:781582052854:web:7fba6eae2a372ce0e22bd7",
-            databaseURL: "https://ghostchat-app-3a3f0-default-rtdb.firebaseio.com"
+            appId: "1:781582052854:web:7fba6eae2a372ce0e22bd7"
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
-
-        // Emojis
-        const emojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😤','😠','😡','🤬','😈','👿','💀','☠️','👻','👽','🤖','🎃','👋','🤚','✋','🖐️','✌️','🤞','🤟','🤘','🤙','👌','🤌','🤏','✊','👊','🤛','🤜','👍','👎','✍️','🙌','👏','🫶','🙏','💪','🦾','🦿','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💯','✔️','❌','❗','❓','❕','❔','⚠️','🚫','⛔','🔞','⭐','🌟','✨','💥','🔥','🎉','🎊','😂','🤣','😭','💀','😎','🗿','👀','💭','🤨','😳','👍','👎','❤️','🔥','🙏','💯','🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🐍','🐢','🐊','🦖','🦕','🐟','🐠','🐳','🐬','🦈','🍎','🍊','🍌','🍉','🍇','🍓','🫐','🍔','🍟','🍕','🌭','🥪','🌮','🌯','🍝','🍜','🍣','🍤','🍗','🍖','🍰','🧁','🍩','🍪','🍫','🍿','☕','🍺','🍻','🥤','🧃','🎮','🕹️','👾','🎲','♟️','💻','🖥️','⌨️','🖱️','📱','📡','🌐','⚙️','🔧','🔨','💾','📂','📁','🧠','🤖','🚀','✈️','🚗','🏍️','🚲','🏠','🏢','🏙️','📦','📌','📎','🔑','🔒','🔓','🔊','🔇','🔔','🧨','💣','🌍'];
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
         // App State
-        let currentUser = null;
-        let currentChatId = null;
-        let chats = {};
-        let users = {};
-        let typingTimeout = null;
-        let messagesListener = null;
-
-        // Generate unique ID
-        function generateUserId() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let result = '';
-            for (let i = 0; i < 8; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
+        let currentUser = localStorage.getItem('whatsapp_user') || null;
+        let currentUserId = localStorage.getItem('whatsapp_uid') || null;
+        
+        // DOM Elements
+        const loginModal = document.getElementById('login-modal');
+        const appContainer = document.getElementById('app-container');
+        const usernameInput = document.getElementById('username-input');
+        const loginBtn = document.getElementById('login-btn');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const sendIcon = document.getElementById('send-icon');
+        const messagesContainer = document.getElementById('messages-container');
+        const myAvatar = document.getElementById('my-avatar');
+        const globalChat = document.getElementById('global-chat');
+        const menuBtn = document.getElementById('menu-btn');
+        
+        // Helper: Scroll to bottom
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Auth state observer
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                loadUserData(user.uid);
-            } else {
-                document.getElementById('authScreen').classList.remove('hidden');
-                document.getElementById('mainApp').classList.add('hidden');
+        // Helper: Format Time
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = timestamp.toDate();
+            let hours = date.getHours();
+            let minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            minutes = minutes < 10 ? '0'+minutes : minutes;
+            return hours + ':' + minutes + ' ' + ampm;
+        }
+
+        // Login Function
+        function login() {
+            const name = usernameInput.value.trim();
+            if (name) {
+                currentUser = name;
+                currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('whatsapp_user', currentUser);
+                localStorage.setItem('whatsapp_uid', currentUserId);
+                
+                showApp();
             }
+        }
+
+        function showApp() {
+            loginModal.classList.add('hidden');
+            appContainer.classList.remove('hidden');
+            appContainer.classList.add('flex'); // Because it was hidden
+            myAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser)}&background=00a884&color=fff`;
+            
+            // Start listening to messages
+            loadMessages();
+            updateSendIcon();
+        }
+
+        // Check if already logged in
+        if (currentUser) {
+            showApp();
+        } else {
+            loginModal.classList.remove('hidden');
+        }
+
+        // Event Listeners for Login
+        loginBtn.addEventListener('click', login);
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
         });
 
-        function showError(message) {
-            const errorEl = document.getElementById('authError');
-            errorEl.textContent = message;
-            errorEl.classList.remove('hidden');
-            setTimeout(() => errorEl.classList.add('hidden'), 5000);
-        }
-
-        function showRegister() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('registerForm').classList.remove('hidden');
-        }
-
-        function showLogin() {
-            document.getElementById('registerForm').classList.add('hidden');
-            document.getElementById('loginForm').classList.remove('hidden');
-        }
-
-        async function register() {
-            const name = document.getElementById('registerName').value.trim();
-            const email = document.getElementById('registerEmail').value.trim();
-            const password = document.getElementById('registerPassword').value;
-
-            if (!name || !email || !password) {
-                showError('Preencha todos os campos');
-                return;
-            }
-
-            if (password.length < 6) {
-                showError('A senha deve ter no mínimo 6 caracteres');
-                return;
-            }
-
-            try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                const uniqueId = generateUserId();
-                
-                const userData = {
-                    id: userCredential.user.uid,
-                    oderId: uniqueId,
-                    oderId_lower: uniqueId.toLowerCase(),
-                    name: name,
-                    name_lower: name.toLowerCase(),
-                    email: email,
-                    photo: '',
-                    bio: 'Olá! Estou usando WhatsApp.',
-                    online: true,
-                    lastSeen: Date.now()
-                };
-
-                await database.ref('users/' + userCredential.user.uid).set(userData);
-                
-            } catch (error) {
-                console.error(error);
-                if (error.code === 'auth/email-already-in-use') {
-                    showError('Este email já está em uso');
-                } else if (error.code === 'auth/invalid-email') {
-                    showError('Email inválido');
-                } else {
-                    showError('Erro ao criar conta: ' + error.message);
-                }
-            }
-        }
-
-        async function login() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-
-            if (!email || !password) {
-                showError('Preencha todos os campos');
-                return;
-            }
-
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-            } catch (error) {
-                console.error(error);
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    showError('Email ou senha incorretos');
-                } else if (error.code === 'auth/invalid-email') {
-                    showError('Email inválido');
-                } else {
-                    showError('Erro ao entrar: ' + error.message);
-                }
-            }
-        }
-
-        async function logout() {
-            if (currentUser) {
-                await database.ref('users/' + currentUser.id).update({
-                    online: false,
-                    lastSeen: Date.now()
-                });
-            }
-            auth.signOut();
-            location.reload();
-        }
-
-        async function loadUserData(uid) {
-            const snapshot = await database.ref('users/' + uid).once('value');
-            if (snapshot.exists()) {
-                currentUser = snapshot.val();
-                showMainApp();
-            }
-        }
-
-        function showMainApp() {
-            document.getElementById('authScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('mainApp').classList.add('flex');
-
-            updateMyAvatar();
-
-            // Set user online
-            database.ref('users/' + currentUser.id).update({ 
-                online: true, 
-                lastSeen: Date.now() 
-            });
-
-            // Handle disconnect
-            database.ref('users/' + currentUser.id).onDisconnect().update({
-                online: false,
-                lastSeen: firebase.database.ServerValue.TIMESTAMP
-            });
-
-            // Load data
-            loadUsers();
-            loadChats();
-            initEmojiPicker();
-        }
-
-        function updateMyAvatar() {
-            const imgEl = document.getElementById('myAvatarImg');
-            const letterEl = document.getElementById('myAvatarLetter');
-            
-            if (currentUser.photo) {
-                imgEl.src = currentUser.photo;
-                imgEl.classList.remove('hidden');
-                letterEl.classList.add('hidden');
+        // Toggle Send/Mic Icon
+        function updateSendIcon() {
+            if (messageInput.value.trim().length > 0) {
+                sendIcon.className = "fas fa-paper-plane text-2xl"; // Send Icon
             } else {
-                imgEl.classList.add('hidden');
-                letterEl.classList.remove('hidden');
-                letterEl.textContent = currentUser.name.charAt(0).toUpperCase();
+                sendIcon.className = "fas fa-microphone text-2xl"; // Mic Icon
             }
         }
 
-        function loadUsers() {
-            database.ref('users').on('value', (snapshot) => {
-                users = snapshot.val() || {};
-                // Se o chat estiver aberto, atualizar status do usuário atual
-                if (currentChatId) {
-                    const chat = chats[currentChatId];
-                    if (chat) {
-                        const otherUserId = Object.keys(chat.participants).find(id => id !== currentUser.id);
-                        if (otherUserId && users[otherUserId]) {
-                            updateChatHeader(users[otherUserId]);
-                        }
-                    }
+        // Send Message Function
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return; // If empty (mic mode), do nothing for now
+
+            const textToSend = text;
+            messageInput.value = '';
+            updateSendIcon();
+            
+            try {
+                await addDoc(collection(db, "messages"), {
+                    text: textToSend,
+                    user: currentUser,
+                    uid: currentUserId,
+                    createdAt: serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                // alert("Error sending message. Check console/permissions.");
+            }
+        }
+
+        // Event Listeners for Sending
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+        messageInput.addEventListener('input', updateSendIcon);
+        
+        // Chat Selection Visual Feedback
+        if(globalChat) {
+            globalChat.addEventListener('click', () => {
+                // Already selected style
+            });
+        }
+
+        // Logout Functionality
+        if(menuBtn) {
+            menuBtn.addEventListener('click', () => {
+                if(confirm("Logout and switch user?")) {
+                    localStorage.removeItem('whatsapp_user');
+                    localStorage.removeItem('whatsapp_uid');
+                    window.location.reload();
                 }
-                updateUsersList();
             });
         }
 
-        function searchUsers() {
-            const query = document.getElementById('searchUserInput').value.toLowerCase().trim();
-            updateUsersList(query);
-        }
-
-        function updateUsersList(searchQuery = '') {
-            const usersList = document.getElementById('usersList');
-            usersList.innerHTML = '';
-
-            const filteredUsers = Object.values(users).filter(user => {
-                if (user.id === currentUser.id) return false;
-                if (!searchQuery) return true;
-                return user.name.toLowerCase().includes(searchQuery) || 
-                       user.oderId.toLowerCase().includes(searchQuery);
-            });
-
-            if (filteredUsers.length === 0) {
-                usersList.innerHTML = '<p class="text-[#8696a0] text-center p-4">Nenhum usuário encontrado</p>';
-                return;
-            }
-
-            filteredUsers.forEach(user => {
-                const userDiv = document.createElement('div');
-                userDiv.className = 'flex items-center gap-3 p-3 hover:bg-[#2a3942] cursor-pointer transition-colors';
-                userDiv.onclick = () => startChatWith(user);
+        // Load Messages
+        function loadMessages() {
+            const q = query(collection(db, "messages"), orderBy("createdAt", "asc"), limit(100));
+            
+            onSnapshot(q, (snapshot) => {
+                // We clear mostly to prevent duplicates if logic was complex, but simple append is better for performance.
+                // However, with React/Vue usually we diff. Here vanilla JS, let's just clear and render for simplicity or append new ones.
+                // For a robust implementation, let's clear and re-render or handle doc changes. 
+                // Given the 100 limit, clearing and re-rendering is acceptable for a demo.
                 
-                const avatarHtml = user.photo 
-                    ? `<img src="${user.photo}" class="w-12 h-12 rounded-full object-cover" />`
-                    : `<div class="w-12 h-12 rounded-full bg-[#6b7175] flex items-center justify-center text-white text-lg">${user.name.charAt(0).toUpperCase()}</div>`;
-                
-                userDiv.innerHTML = `
-                    <div class="relative">
-                        ${avatarHtml}
-                        ${user.online ? '<div class="absolute bottom-0 right-0 w-3 h-3 bg-[#00a884] rounded-full border-2 border-[#202c33] online-dot"></div>' : ''}
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-white">${user.name}</p>
-                        <p class="text-[#8696a0] text-sm">ID: ${user.oderId}</p>
-                    </div>
-                `;
-                usersList.appendChild(userDiv);
-            });
-        }
-
-        function loadChats() {
-            database.ref('chats').orderByChild('participants/' + currentUser.id).equalTo(true).on('value', (snapshot) => {
-                chats = snapshot.val() || {};
-                renderChatsList();
-            });
-        }
-
-        function renderChatsList() {
-            const chatsList = document.getElementById('chatsList');
-            chatsList.innerHTML = '';
-            const query = document.getElementById('searchInput').value.toLowerCase().trim();
-
-            const chatArray = Object.entries(chats).map(([id, chat]) => {
-                // Find other participant
-                const otherUserId = Object.keys(chat.participants).find(pid => pid !== currentUser.id);
-                const otherUser = users[otherUserId];
-                return {
-                    id,
-                    ...chat,
-                    otherUser,
-                    lastMessageTime: chat.lastMessage ? chat.lastMessage.timestamp : 0
-                };
-            }).filter(item => {
-                if(!item.otherUser) return false;
-                if(!query) return true;
-                return item.otherUser.name.toLowerCase().includes(query);
-            }).sort((a, b) => b.lastMessageTime - a.lastMessageTime);
-
-            if (chatArray.length === 0) {
-                chatsList.innerHTML = '<p class="text-[#8696a0] text-center p-4">Nenhuma conversa encontrada</p>';
-                return;
-            }
-
-            chatArray.forEach(chat => {
-                const isActive = currentChatId === chat.id;
-                const div = document.createElement('div');
-                div.className = `flex items-center gap-3 p-3 cursor-pointer transition-colors border-b border-[#222d34] hover:bg-[#202c33] ${isActive ? 'bg-[#2a3942]' : ''}`;
-                div.onclick = () => openChat(chat.id, chat.otherUser);
-
-                const timeStr = chat.lastMessage ? new Date(chat.lastMessage.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-                const lastMsg = chat.lastMessage ? chat.lastMessage.text : 'Iniciar conversa';
-
-                const avatarHtml = chat.otherUser.photo 
-                    ? `<img src="${chat.otherUser.photo}" class="w-12 h-12 rounded-full object-cover" />`
-                    : `<div class="w-12 h-12 rounded-full bg-[#6b7175] flex items-center justify-center text-white text-lg">${chat.otherUser.name.charAt(0).toUpperCase()}</div>`;
-
-                div.innerHTML = `
-                    <div class="relative">
-                        ${avatarHtml}
-                        ${chat.otherUser.online ? '<div class="absolute bottom-0 right-0 w-3 h-3 bg-[#00a884] rounded-full border-2 border-[#202c33] online-dot"></div>' : ''}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-baseline">
-                            <h4 class="text-white font-medium truncate">${chat.otherUser.name}</h4>
-                            <span class="text-[#8696a0] text-xs">${timeStr}</span>
+                messagesContainer.innerHTML = `
+                    <div class="flex justify-center mb-4 pt-4">
+                        <div class="bg-[#ffeecd] text-[#54656f] text-xs px-3 py-1.5 rounded-lg shadow-sm text-center select-none">
+                            <i class="fas fa-lock text-[10px] mr-1"></i> Messages are end-to-end encrypted. No one outside of this chat, not even WhatsApp, can read or listen to them.
                         </div>
-                        <p class="text-[#8696a0] text-sm truncate w-full">${lastMsg}</p>
                     </div>
                 `;
-                chatsList.appendChild(div);
-            });
-        }
 
-        function startChatWith(user) {
-            hideNewChat();
-            
-            // Create a consistent ID (sort user IDs so it's always the same for same pair)
-            const chatParticipants = [currentUser.id, user.id].sort();
-            const chatId = chatParticipants.join('_');
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const isMe = data.uid === currentUserId;
+                    
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = `flex mb-2 ${isMe ? 'justify-end' : 'justify-start'}`;
+                    
+                    const time = data.createdAt ? formatTime(data.createdAt) : '...';
+                    
+                    // Bubble color and shape
+                    const bubbleClass = isMe ? 'message-out' : 'message-in';
+                    const nameDisplay = isMe ? '' : `<div class="text-[#d75e47] text-xs font-bold mb-1">${data.user}</div>`;
+                    const checkmark = isMe ? `<span class="ml-1 text-[#53bdeb]"><i class="fas fa-check-double text-[10px]"></i></span>` : '';
 
-            // Check if chat exists locally first
-            if (chats[chatId]) {
-                openChat(chatId, user);
-            } else {
-                // Initialize chat in DB
-                const newChatData = {
-                    participants: {
-                        [currentUser.id]: true,
-                        [user.id]: true
-                    },
-                    createdAt: firebase.database.ServerValue.TIMESTAMP
-                };
-                database.ref('chats/' + chatId).update(newChatData).then(() => {
-                    openChat(chatId, user);
+                    msgDiv.innerHTML = `
+                        <div class="${bubbleClass} relative max-w-[65%] px-2 py-1 shadow-sm text-sm">
+                            ${nameDisplay}
+                            <div class="flex flex-col relative">
+                                <span class="text-[#111b21] pb-1 pr-16 leading-relaxed">${escapeHtml(data.text)}</span>
+                                <div class="absolute bottom-[-4px] right-0 flex items-center text-[10px] text-[#667781] select-none">
+                                    <span class="mr-1">${time}</span>
+                                    ${checkmark}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    messagesContainer.appendChild(msgDiv);
                 });
-            }
-        }
-
-        function openChat(chatId, user) {
-            currentChatId = chatId;
-            
-            // UI Toggle
-            document.getElementById('emptyState').classList.add('hidden');
-            document.getElementById('chatView').classList.remove('hidden');
-            document.getElementById('chatView').classList.add('flex');
-
-            // Update Header
-            updateChatHeader(user);
-            
-            // Refresh list to highlight selection
-            renderChatsList();
-
-            // Load Messages
-            loadMessages(chatId);
-            
-            // Clear input
-            document.getElementById('messageInput').value = '';
-
-            // Handle mobile view
-            if (window.innerWidth < 768) {
-                document.getElementById('leftPanel').classList.add('hidden');
-                document.getElementById('chatView').classList.remove('hidden');
-            }
-        }
-
-        function updateChatHeader(user) {
-             const imgEl = document.getElementById('chatAvatarImg');
-             const letterEl = document.getElementById('chatAvatarLetter');
-             
-             if (user.photo) {
-                 imgEl.src = user.photo;
-                 imgEl.classList.remove('hidden');
-                 letterEl.classList.add('hidden');
-             } else {
-                 imgEl.classList.add('hidden');
-                 letterEl.classList.remove('hidden');
-                 letterEl.textContent = user.name.charAt(0).toUpperCase();
-             }
-
-             document.getElementById('chatName').textContent = user.name;
-             document.getElementById('chatUserId').textContent = "ID: " + user.oderId;
-             
-             let status = '';
-             if (user.online) {
-                 status = 'Online';
-             } else if (user.lastSeen) {
-                 const date = new Date(user.lastSeen);
-                 status = 'Visto por último ' + date.toLocaleDateString() + ' às ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-             }
-             document.getElementById('chatStatus').textContent = status;
-        }
-
-        function closeChat() {
-            currentChatId = null;
-            if (window.innerWidth < 768) {
-                document.getElementById('leftPanel').classList.remove('hidden');
-                document.getElementById('chatView').classList.add('hidden');
-            } else {
-                document.getElementById('emptyState').classList.remove('hidden');
-                document.getElementById('chatView').classList.add('hidden');
-            }
-            if (messagesListener) {
-                database.ref('messages/' + currentChatId).off('child_added', messagesListener);
-            }
-        }
-
-        function loadMessages(chatId) {
-            const container = document.getElementById('messagesArea');
-            container.innerHTML = '';
-
-            if (messagesListener) {
-                database.ref('messages/' + currentChatId).off(); // Remove previous listeners
-            }
-
-            // Listen for new messages
-            messagesListener = database.ref('messages/' + chatId).limitToLast(100).on('child_added', (snapshot) => {
-                const msg = snapshot.val();
-                renderMessage(msg);
-                container.scrollTop = container.scrollHeight;
+                
+                scrollToBottom();
+                
+                // Update last message in sidebar
+                if (!snapshot.empty) {
+                    const lastMsg = snapshot.docs[snapshot.docs.length - 1].data();
+                    const sidebarMsg = document.getElementById('last-message');
+                    const sidebarTime = document.getElementById('last-time');
+                    if(sidebarMsg) sidebarMsg.textContent = (lastMsg.uid === currentUserId ? "You: " : lastMsg.user + ": ") + lastMsg.text;
+                    if(sidebarTime && lastMsg.createdAt) sidebarTime.textContent = formatTime(lastMsg.createdAt);
+                }
             });
         }
-
-        function renderMessage(msg) {
-            const container = document.getElementById('messagesArea');
-            const isMe = msg.sender === currentUser.id;
-            
-            const div = document.createElement('div');
-            div.className = `flex ${isMe ? 'justify-end' : 'justify-start'} mb-2`;
-            
-            const time = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            div.innerHTML = `
-                <div class="${isMe ? 'message-out' : 'message-in'} rounded-lg px-2 py-1 max-w-[80%] relative shadow-md text-sm md:text-base">
-                    <div class="px-1 pt-1 pb-4">
-                        ${msg.text}
-                    </div>
-                    <div class="absolute right-2 bottom-1 text-[10px] text-[#aebac1] flex items-center gap-1">
-                        ${time}
-                        ${isMe ? '<span class="text-[#53bdeb]">✓✓</span>' : ''}
-                    </div>
-                </div>
-            `;
-            container.appendChild(div);
+        
+        // Prevent XSS
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
-
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            
-            if (!text || !currentChatId) return;
-
-            const messageData = {
-                sender: currentUser.id,
-                text: text,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-
-            // Push message
-            database.ref('messages/' + currentChatId).push(messageData);
-
-            // Update chat info
-            database.ref('chats/' + currentChatId).update({
-                lastMessage: messageData
-            });
-
-            input.value = '';
-            input.focus();
-        }
-
-        function handleKeyDown(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        }
-
-        function handleTyping() {
-            // Typing indicator logic can be implemented here (updating a typing status in DB)
-        }
-
-        // --- Modals & Utilities ---
-
-        function showNewChat() {
-            document.getElementById('newChatModal').classList.remove('hidden');
-            // Load all users initially
-            updateUsersList();
-            document.getElementById('searchUserInput').focus();
-        }
-
-        function hideNewChat() {
-            document.getElementById('newChatModal').classList.add('hidden');
-        }
-
-        function showProfileModal() {
-            document.getElementById('profileModal').classList.remove('hidden');
-            
-            // Populate data
-            const imgEl = document.getElementById('profileAvatarImg');
-            const letterEl = document.getElementById('profileAvatarLetter');
-            
-            if (currentUser.photo) {
-                imgEl.src = currentUser.photo;
-                imgEl.classList.remove('hidden');
-                letterEl.classList.add('hidden');
-            } else {
-                imgEl.classList.add('hidden');
-                letterEl.classList.remove('hidden');
-                letterEl.textContent = currentUser.name.charAt(0).toUpperCase();
-            }
-
-            document.getElementById('profileName').value = currentUser.name;
-            document.getElementById('profilePhoto').value = currentUser.photo || '';
-            document.getElementById('profileBio').value = currentUser.bio || '';
-            document.getElementById('profileUserId').textContent = currentUser.oderId;
-        }
-
-        function hideProfileModal() {
-            document.getElementById('profileModal').classList.add('hidden');
-        }
-
-        async function saveProfile() {
-            const name = document.getElementById('profileName').value.trim();
-            const photo = document.getElementById('profilePhoto').value.trim();
-            const bio = document.getElementById('profileBio').value.trim();
-
-            if (!name) return alert("Nome é obrigatório");
-
-            await database.ref('users/' + currentUser.id).update({
-                name: name,
-                name_lower: name.toLowerCase(),
-                photo: photo,
-                bio: bio
-            });
-
-            // Update local state and UI
-            currentUser.name = name;
-            currentUser.photo = photo;
-            currentUser.bio = bio;
-            updateMyAvatar();
-            hideProfileModal();
-        }
-
-        function copyUserId() {
-            const id = document.getElementById('profileUserId').textContent;
-            navigator.clipboard.writeText(id).then(() => {
-                alert("ID copiado!");
-            });
-        }
-
-        // Emoji Logic
-        function initEmojiPicker() {
-            const grid = document.getElementById('emojiGrid');
-            emojis.forEach(emoji => {
-                const btn = document.createElement('div');
-                btn.className = 'emoji-btn flex items-center justify-center';
-                btn.textContent = emoji;
-                btn.onclick = () => {
-                    const input = document.getElementById('messageInput');
-                    input.value += emoji;
-                    input.focus();
-                };
-                grid.appendChild(btn);
-            });
-        }
-
-        function toggleEmojiPicker() {
-            const picker = document.getElementById('emojiPicker');
-            picker.classList.toggle('hidden');
-        }
-
-        // Close emoji picker when clicking outside
-        document.addEventListener('click', (e) => {
-            const picker = document.getElementById('emojiPicker');
-            const btn = e.target.closest('button');
-            const isEmojiBtn = btn && btn.onclick && btn.onclick.toString().includes('toggleEmojiPicker');
-            
-            if (!picker.classList.contains('hidden') && !picker.contains(e.target) && !isEmojiBtn) {
-                picker.classList.add('hidden');
-            }
-        });
 
     </script>
 </body>
