@@ -1,179 +1,122 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Web Clone - Live</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        ::-webkit-scrollbar { width: 6px !important; }
-        ::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.2); }
-        .chat-bg {
-            background-color: #efeae2;
-            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-            background-repeat: repeat;
-        }
-        .wa-green-bg { background-color: #00a884; }
-        .message-out { background-color: #d9fdd3; border-radius: 7.5px 0 7.5px 7.5px; align-self: flex-end; }
-        .message-in { background-color: #ffffff; border-radius: 0 7.5px 7.5px 7.5px; align-self: flex-start; }
-        .message-out::before {
-            content: ""; position: absolute; top: 0; right: -8px;
-            border-bottom: 10px solid transparent; border-left: 10px solid #d9fdd3;
-        }
-        .message-in::before {
-            content: ""; position: absolute; top: 0; left: -8px;
-            border-bottom: 10px solid transparent; border-right: 10px solid #ffffff;
-        }
-    </style>
-</head>
-<body class="bg-[#d1d7db] h-screen overflow-hidden font-sans">
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    <div class="absolute top-0 w-full h-32 wa-green-bg z-0"></div>
+    // SUBSTITUA PELOS DADOS DO SEU PROJETO NO FIREBASE CONSOLE
+    const firebaseConfig = {
+        apiKey: "SUA_API_KEY",
+        authDomain: "SEU_PROJETO.firebaseapp.com",
+        projectId: "SEU_PROJETO",
+        storageBucket: "SEU_PROJETO.appspot.com",
+        messagingSenderId: "SEU_SENDER_ID",
+        appId: "SEU_APP_ID"
+    };
 
-    <div id="login-modal" class="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-96 text-center">
-            <div class="text-[#00a884] text-5xl mb-4"><i class="fab fa-whatsapp"></i></div>
-            <h2 class="text-2xl font-bold mb-2">WhatsApp Web</h2>
-            <p class="text-gray-600 mb-6">Digite seu nome para entrar no chat global</p>
-            <input type="text" id="username-input" class="w-full px-4 py-2 border rounded mb-4 focus:outline-[#00a884]" placeholder="Seu nome">
-            <button id="login-btn" class="w-full bg-[#00a884] text-white py-2 rounded font-semibold hover:bg-[#008f6f]">Entrar</button>
-        </div>
-    </div>
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    <div id="app-container" class="relative z-10 container mx-auto h-[95vh] top-[2.5vh] flex shadow-lg bg-white hidden">
+    // ID FIXO DA CONVERSA (Todas as mensagens vão para esta "sala")
+    const CHAT_ID = "global_chat_room"; 
+    const messagesRef = collection(db, "chats", CHAT_ID, "messages");
+
+    let currentUser = localStorage.getItem('whatsapp_user');
+    let currentUserId = localStorage.getItem('whatsapp_uid');
+
+    // Se não houver ID, gera um fixo para este navegador
+    if (!currentUserId) {
+        currentUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('whatsapp_uid', currentUserId);
+    }
+
+    const loginModal = document.getElementById('login-modal');
+    const appContainer = document.getElementById('app-container');
+    const messageInput = document.getElementById('message-input');
+    const messagesContainer = document.getElementById('messages-container');
+
+    // Função de Login
+    window.login = function() {
+        const name = document.getElementById('username-input').value.trim();
+        if (name) {
+            currentUser = name;
+            localStorage.setItem('whatsapp_user', name);
+            showApp();
+        }
+    }
+
+    function showApp() {
+        loginModal.classList.add('hidden');
+        appContainer.classList.remove('hidden');
+        appContainer.classList.add('flex');
+        document.getElementById('my-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser)}&background=00a884&color=fff`;
+        listenMessages();
+    }
+
+    // ENVIO EM TEMPO REAL
+    async function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text) return;
+
+        messageInput.value = ''; // Limpa o input na hora para feedback rápido
         
-        <div class="w-1/3 border-r flex flex-col">
-            <div class="bg-[#f0f2f5] px-4 py-3 flex justify-between items-center">
-                <img id="my-avatar" class="w-10 h-10 rounded-full" src="">
-                <div class="flex gap-4 text-[#54656f]">
-                    <i class="fas fa-circle-notch cursor-pointer"></i>
-                    <i id="logout-btn" class="fas fa-right-from-bracket cursor-pointer" title="Sair"></i>
-                </div>
-            </div>
-            <div class="p-2 bg-white">
-                <div class="bg-[#f0f2f5] rounded-lg px-3 py-1 flex items-center">
-                    <i class="fas fa-search text-gray-500 mr-3"></i>
-                    <input type="text" placeholder="Pesquisar..." class="bg-transparent text-sm w-full outline-none">
-                </div>
-            </div>
-            <div class="flex-1 overflow-y-auto">
-                <div class="flex items-center gap-3 p-3 bg-[#f0f2f5] border-b">
-                    <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl">
-                        <i class="fas fa-globe"></i>
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between"><h3 class="font-medium">Chat Global</h3><span id="last-time" class="text-xs text-gray-500"></span></div>
-                        <p id="last-message" class="text-sm text-gray-500 truncate">Inicie uma conversa...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex-1 flex flex-col chat-bg">
-            <div class="bg-[#f0f2f5] px-4 py-3 flex items-center gap-4 border-b">
-                <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white"><i class="fas fa-globe"></i></div>
-                <div><h3 class="font-medium">Chat Global</h3><span class="text-xs text-green-600">online agora</span></div>
-            </div>
-
-            <div id="messages-container" class="flex-1 overflow-y-auto p-6 flex flex-col gap-2">
-                </div>
-
-            <div class="bg-[#f0f2f5] px-4 py-3 flex items-center gap-4">
-                <i class="far fa-face-smile text-2xl text-gray-600 cursor-pointer"></i>
-                <input type="text" id="message-input" class="flex-1 px-4 py-2 rounded-lg outline-none" placeholder="Digite uma mensagem">
-                <button id="send-btn" class="text-gray-600"><i id="send-icon" class="fas fa-paper-plane text-2xl"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        // CONFIGURAÇÃO DO FIREBASE (Substitua pelos seus dados do console)
-        const firebaseConfig = {
-            apiKey: "AIzaSy...", 
-            authDomain: "seu-projeto.firebaseapp.com",
-            projectId: "seu-projeto",
-            storageBucket: "seu-projeto.appspot.com",
-            messagingSenderId: "00000000",
-            appId: "1:0000:web:0000"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Estado do Usuário
-        let user = localStorage.getItem('chat_user');
-        let uid = localStorage.getItem('chat_uid') || 'u_' + Date.now();
-        localStorage.setItem('chat_uid', uid);
-
-        const loginModal = document.getElementById('login-modal');
-        const appContainer = document.getElementById('app-container');
-        const msgInput = document.getElementById('message-input');
-        const msgContainer = document.getElementById('messages-container');
-
-        function checkAuth() {
-            if (!user) {
-                loginModal.classList.remove('hidden');
-            } else {
-                loginModal.classList.add('hidden');
-                appContainer.classList.remove('hidden');
-                document.getElementById('my-avatar').src = `https://ui-avatars.com/api/?name=${user}&background=00a884&color=fff`;
-                loadMessages();
-            }
-        }
-
-        document.getElementById('login-btn').onclick = () => {
-            const name = document.getElementById('username-input').value.trim();
-            if (name) {
-                user = name;
-                localStorage.setItem('chat_user', name);
-                checkAuth();
-            }
-        };
-
-        async function sendMessage() {
-            const text = msgInput.value.trim();
-            if (!text) return;
-
-            msgInput.value = '';
-            await addDoc(collection(db, "global_messages"), {
-                text,
-                user,
-                uid,
-                timestamp: serverTimestamp()
+        try {
+            await addDoc(messagesRef, {
+                text: text,
+                user: currentUser,
+                uid: currentUserId,
+                createdAt: serverTimestamp() // Hora do servidor (crucial para sincronia)
             });
+        } catch (e) {
+            console.error("Erro ao enviar:", e);
         }
+    }
 
-        function loadMessages() {
-            const q = query(collection(db, "global_messages"), orderBy("timestamp", "asc"));
-            onSnapshot(q, (snapshot) => {
-                msgContainer.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const isMe = data.uid === uid;
-                    const time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...';
-                    
-                    const div = document.createElement('div');
-                    div.className = `relative max-w-[70%] px-3 py-1 shadow-sm ${isMe ? 'message-out' : 'message-in'}`;
-                    div.innerHTML = `
-                        ${!isMe ? `<div class="text-orange-600 text-[11px] font-bold">${data.user}</div>` : ''}
-                        <div class="text-[#111b21] pr-12">${data.text}</div>
-                        <div class="text-[10px] text-gray-500 absolute bottom-1 right-2">${time} ${isMe ? '<i class="fas fa-check-double text-blue-400"></i>' : ''}</div>
-                    `;
-                    msgContainer.appendChild(div);
-                });
-                msgContainer.scrollTop = msgContainer.scrollHeight;
+    // ESCUTA EM TEMPO REAL (O "Coração" do sistema)
+    function listenMessages() {
+        const q = query(messagesRef, orderBy("createdAt", "asc"));
+        
+        // Esta função roda toda vez que alguém (você ou o outro) manda mensagem
+        onSnapshot(q, (snapshot) => {
+            messagesContainer.innerHTML = ''; // Limpa e redesenha (ou você pode fazer append)
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                renderMessage(data);
             });
-        }
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+    }
 
-        document.getElementById('send-btn').onclick = sendMessage;
-        msgInput.onkeypress = (e) => e.key === 'Enter' && sendMessage();
-        document.getElementById('logout-btn').onclick = () => { localStorage.clear(); location.reload(); };
+    function renderMessage(data) {
+        const isMe = data.uid === currentUserId;
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `flex mb-2 ${isMe ? 'justify-end' : 'justify-start'}`;
+        
+        const time = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...';
+        const bubbleClass = isMe ? 'message-out' : 'message-in';
+        
+        msgDiv.innerHTML = `
+            <div class="${bubbleClass} relative max-w-[65%] px-2 py-1 shadow-sm text-sm" style="position: relative;">
+                ${!isMe ? `<div class="text-[#d75e47] text-[11px] font-bold mb-1">${data.user}</div>` : ''}
+                <div class="flex flex-col">
+                    <span class="text-[#111b21] pb-1 pr-10">${escapeHtml(data.text)}</span>
+                    <div class="text-[10px] text-[#667781] self-end">${time}</div>
+                </div>
+            </div>
+        `;
+        messagesContainer.appendChild(msgDiv);
+    }
 
-        checkAuth();
-    </script>
-</body>
-</html>
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Listeners
+    document.getElementById('login-btn').onclick = login;
+    document.getElementById('send-btn').onclick = sendMessage;
+    messageInput.onkeypress = (e) => { if(e.key === 'Enter') sendMessage(); };
+
+    if (currentUser) showApp();
+</script>
