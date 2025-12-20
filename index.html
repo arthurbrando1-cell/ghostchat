@@ -3,154 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GhostChat Pro - Ultimate Edition</title>
+    <title>GhostChat Pro - Fix Edition</title>
     <style>
         :root {
             --bg-main: #111b21; --bg-sidebar: #111b21; --bg-panel: #202c33;
             --bg-chat: #0b141a; --accent: #00a884; --text-main: #e9edef;
             --text-dim: #8696a0; --msg-own: #005c4b; --msg-other: #202c33;
-            --danger: #ea0038; --glass: rgba(32, 44, 51, 0.9);
+            --danger: #ea0038;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; overflow: hidden; }
         #app { display: flex; width: 100vw; height: 100vh; }
 
-        /* Sidebar */
         .sidebar { width: 30%; min-width: 320px; background: var(--bg-sidebar); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
         .sidebar-header { background: var(--bg-panel); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; height: 60px; }
         .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1.5px solid var(--accent); background: #333; }
         .chat-list { flex: 1; overflow-y: auto; }
         .chat-item { display: flex; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
         .chat-item:hover { background: #2a3942; }
-        .chat-item img { width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; background: #333; }
+        .chat-item img { width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; }
 
-        /* Main Chat */
         .main-chat { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); background-size: cover; background-position: center; position: relative; }
         .chat-header { background: var(--bg-panel); padding: 10px 16px; display: flex; align-items: center; height: 60px; z-index: 10; justify-content: space-between; }
-        #messages-container { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 8px; z-index: 5; }
+        #messages-container { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 8px; }
 
-        /* Mensagens */
-        .msg-wrapper { display: flex; align-items: flex-end; gap: 8px; max-width: 75%; }
+        .msg-wrapper { display: flex; align-items: flex-end; gap: 8px; max-width: 75%; margin-bottom: 4px; }
         .msg-wrapper.own { align-self: flex-end; flex-direction: row-reverse; }
-        .msg-bubble { padding: 9px 13px; border-radius: 12px; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.4); cursor: pointer; }
+        .msg-bubble { padding: 8px 12px; border-radius: 12px; font-size: 15px; position: relative; word-wrap: break-word; }
         .own .msg-bubble { background: var(--msg-own); border-bottom-right-radius: 2px; }
         .other .msg-bubble { background: var(--msg-other); border-bottom-left-radius: 2px; }
-        .chat-img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; }
+        .chat-img { max-width: 250px; border-radius: 8px; cursor: pointer; }
 
-        /* Input Bar */
-        .input-bar { background: var(--bg-panel); padding: 8px 15px; display: flex; align-items: center; gap: 10px; z-index: 10; }
-        .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
-        .icon-btn { fill: var(--text-dim); cursor: pointer; display: flex; align-items: center; }
-
-        /* Modais */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-        .modal-content { background: var(--bg-panel); padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; position: relative; }
-        .active { display: flex !important; }
-        .hidden { display: none !important; }
-
-        /* Perfil Estilizado */
-        .profile-card { text-align: center; overflow: hidden; }
-        .banner-preview { width: 100%; height: 100px; background: #333; border-radius: 10px; object-fit: cover; margin-bottom: -40px; }
-        .pfp-large { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--bg-panel); position: relative; z-index: 1; background: #444; object-fit: cover; }
-        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; background: #111b21; border: 1px solid #3b4a54; color: white; border-radius: 8px; margin-bottom: 10px; }
-        .btn-action { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+        .input-bar { background: var(--bg-panel); padding: 10px; display: flex; align-items: center; gap: 10px; }
+        .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px; border-radius: 20px; color: white; outline: none; }
         
-        .upload-label { font-size: 12px; color: var(--accent); cursor: pointer; display: block; margin-bottom: 10px; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--bg-panel); padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
+        .modal.active { display: flex; }
+        .hidden { display: none; }
+        
+        .profile-previews { position: relative; margin-bottom: 20px; }
+        .banner-edit { width: 100%; height: 80px; object-fit: cover; border-radius: 10px; background: #444; }
+        .pfp-edit { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--bg-panel); margin-top: -35px; position: relative; background: #555; object-fit: cover; }
+        
+        input[type="file"] { display: none; }
+        .label-file { color: var(--accent); cursor: pointer; font-size: 12px; display: block; margin: 5px 0; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen" style="position:fixed; inset:0; background:var(--bg-main); z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <h1 style="color:white; margin-bottom:30px;">GhostChat <span style="color:var(--accent)">PRO</span></h1>
-        <button onclick="handleLogin()" class="btn-action" style="width: auto; padding: 15px 50px; border-radius: 50px;">ENTRAR NO SISTEMA</button>
+    <div id="login-screen" style="position:fixed; inset:0; background:var(--bg-main); z-index:2000; display:flex; align-items:center; justify-content:center;">
+        <button onclick="handleLogin()" style="padding: 15px 40px; border-radius: 30px; border:none; background:var(--accent); color:white; font-weight:bold; cursor:pointer;">ENTRAR NO GHOSTCHAT</button>
     </div>
 
     <div id="app" class="hidden">
         <div class="sidebar">
             <div class="sidebar-header">
                 <img src="" id="my-pfp" class="avatar" onclick="openModal('modal-profile')">
-                <div style="display:flex; gap: 15px;">
-                    <div class="icon-btn" onclick="openModal('modal-add')">
-                        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
-                    </div>
-                </div>
+                <button onclick="openModal('modal-add')" style="background:none; border:none; cursor:pointer;">
+                    <svg fill="var(--text-dim)" width="28" height="28" viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </button>
             </div>
             <div class="chat-list" id="chat-list-ui"></div>
         </div>
 
-        <div class="main-chat" id="chat-bg-area">
+        <div class="main-chat" id="chat-area">
             <div class="chat-header" id="header-ui" style="visibility:hidden">
                 <div style="display:flex; align-items:center">
-                    <img src="" id="target-pfp" class="avatar" style="margin-right:15px">
+                    <img src="" id="target-pfp" class="avatar" style="margin-right:12px">
                     <div>
-                        <h4 id="target-name">Nome</h4>
-                        <small id="target-bio" style="color:var(--text-dim); font-size: 11px;"></small>
+                        <b id="target-name">Nome</b><br>
+                        <small id="target-bio" style="color:var(--text-dim)"></small>
                     </div>
                 </div>
-                <div class="icon-btn" onclick="openModal('modal-wallpaper')">
-                    <svg viewBox="0 0 24 24" width="24" height="24"><path d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z"></path></svg>
-                </div>
+                <label for="up-wall" style="cursor:pointer">
+                    <svg fill="var(--text-dim)" width="24" height="24" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                </label>
+                <input type="file" id="up-wall" accept="image/*" onchange="applyWallpaper(this)">
             </div>
 
             <div id="messages-container"></div>
 
             <div class="input-bar">
-                <label class="icon-btn" for="msg-img-upload">
-                    <svg viewBox="0 0 24 24" width="26" height="26"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg>
+                <label for="up-msg-img" style="cursor:pointer">
+                    <svg fill="var(--text-dim)" width="26" height="26" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                 </label>
-                <input type="file" id="msg-img-upload" accept="image/*" style="display:none" onchange="uploadChatImg(this)">
-                <input type="text" id="msg-input" placeholder="Digite uma mensagem..." autocomplete="off">
-                <div class="icon-btn" onclick="handleSendMsg()">
-                    <svg viewBox="0 0 24 24" width="26" height="26" fill="var(--accent)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-                </div>
+                <input type="file" id="up-msg-img" accept="image/*" onchange="sendImage(this)">
+                <input type="text" id="msg-input" placeholder="Mensagem..." autocomplete="off">
+                <button onclick="handleSendMsg()" style="background:none; border:none; cursor:pointer;">
+                    <svg fill="var(--accent)" width="26" height="26" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
             </div>
         </div>
     </div>
 
     <div id="modal-profile" class="modal">
-        <div class="modal-content profile-card">
-            <img id="view-banner" class="banner-preview" src="">
-            <label class="upload-label" for="up-banner">Alterar Banner</label>
-            <input type="file" id="up-banner" accept="image/*" style="display:none" onchange="toBase64(this, 'view-banner')">
-            
-            <img id="view-pfp" class="pfp-large" src="">
-            <label class="upload-label" for="up-pfp">Alterar Foto</label>
-            <input type="file" id="up-pfp" accept="image/*" style="display:none" onchange="toBase64(this, 'view-pfp')">
-
-            <div class="id-badge" style="color:var(--accent); font-weight:bold; margin: 10px 0;">ID: <span id="display-id">0000</span></div>
-            
-            <input id="in-name" placeholder="Seu Nome">
-            <textarea id="in-bio" placeholder="Sua Bio..." rows="2"></textarea>
-            
-            <button class="btn-action" onclick="saveProfile()">SALVAR PERFIL</button>
-            <button onclick="closeModals()" style="background:none; border:none; color:white; margin-top:10px; cursor:pointer;">Cancelar</button>
-        </div>
-    </div>
-
-    <div id="modal-wallpaper" class="modal">
         <div class="modal-content">
-            <h3>Plano de Fundo</h3>
-            <p style="font-size: 12px; margin-bottom: 10px; color: var(--text-dim);">Escolha uma imagem para este chat</p>
-            <input type="file" id="up-wall" accept="image/*" onchange="applyWallpaper(this)">
-            <button class="btn-action" onclick="closeModals()">PRONTO</button>
+            <div class="profile-previews">
+                <img id="view-banner" class="banner-edit" src="">
+                <label class="label-file" for="in-banner-up">Trocar Banner</label>
+                <input type="file" id="in-banner-up" onchange="previewImg(this, 'view-banner')">
+                
+                <img id="view-pfp" class="pfp-edit" src="">
+                <label class="label-file" for="in-pfp-up">Trocar Foto</label>
+                <input type="file" id="in-pfp-up" onchange="previewImg(this, 'view-pfp')">
+            </div>
+            <input type="text" id="in-name" placeholder="Seu Nome" style="width:100%; padding:10px; margin-bottom:10px; background:#111b21; border:1px solid #333; color:white;">
+            <input type="text" id="in-bio" placeholder="Sua Bio" style="width:100%; padding:10px; margin-bottom:10px; background:#111b21; border:1px solid #333; color:white;">
+            <button onclick="saveProfile()" style="width:100%; padding:10px; background:var(--accent); border:none; color:white; font-weight:bold; cursor:pointer;">SALVAR</button>
+            <button onclick="closeModals()" style="background:none; border:none; color:var(--text-dim); margin-top:10px; cursor:pointer;">Sair</button>
         </div>
     </div>
 
     <div id="modal-add" class="modal">
         <div class="modal-content">
-            <h3>Adicionar Contato</h3>
-            <input id="search-id" placeholder="Digite o ID Ghost (ex: 1234)" style="text-align:center; font-size: 20px;">
-            <button class="btn-action" onclick="findGhost()">ADICIONAR</button>
-            <button onclick="closeModals()" style="background:none; border:none; color:white; margin-top:10px; cursor:pointer;">Voltar</button>
+            <h3>Adicionar Fantasma</h3>
+            <input type="text" id="search-id" placeholder="ID do Ghost" style="width:100%; padding:10px; margin:15px 0; background:#111b21; border:1px solid #333; color:white; text-align:center;">
+            <button onclick="findGhost()" style="width:100%; padding:10px; background:var(--accent); border:none; color:white; font-weight:bold; cursor:pointer;">CONECTAR</button>
+            <button onclick="closeModals()" style="background:none; border:none; color:var(--text-dim); margin-top:10px; cursor:pointer;">Cancelar</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDocs, where, limit, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDoc, getDocs, where, limit } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
-        // CONFIGURAÇÃO FIREBASE (Substitua pelos seus dados)
         const firebaseConfig = {
             apiKey: "AIzaSyC0DhQ-EUs3Azqn7_tbB-W3S9ko0DaUWls",
             authDomain: "ghostchat-app-3a3f0.firebaseapp.com",
@@ -166,101 +144,70 @@
 
         let myData = {}, activeChatId = null, activeTarget = null, unsub = null;
 
-        // --- SISTEMA DE AUTENTICAÇÃO E PERFIL ---
+        // Login e Sincronização de Perfil
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const gid = localStorage.getItem('ghost_id') || Math.floor(1000 + Math.random() * 9000).toString();
                 localStorage.setItem('ghost_id', gid);
+                
+                const userRef = doc(db, "users", user.uid);
+                const snap = await getDoc(userRef);
+                
+                if(!snap.exists()) {
+                    myData = { uid: user.uid, ghostId: gid, name: "Ghost", bio: "Hey!", pic: "", banner: "" };
+                    await setDoc(userRef, myData);
+                } else {
+                    myData = snap.data();
+                }
 
-                const uRef = doc(db, "users", user.uid);
-                onSnapshot(uRef, (snap) => {
-                    if(snap.exists()){
-                        myData = snap.data();
-                        document.getElementById('my-pfp').src = myData.pic || '';
-                        document.getElementById('view-pfp').src = myData.pic || '';
-                        document.getElementById('view-banner').src = myData.banner || '';
-                        document.getElementById('in-name').value = myData.name || '';
-                        document.getElementById('in-bio').value = myData.bio || '';
-                        document.getElementById('display-id').innerText = myData.ghostId;
-                    }
-                });
-
+                document.getElementById('my-pfp').src = myData.pic || 'https://via.placeholder.com/40';
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
-                loadContacts();
+                loadChatList();
             }
         });
 
-        // --- FUNÇÕES DE CONVERSÃO BASE64 ---
-        window.toBase64 = (input, targetImgId) => {
-            const file = input.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                document.getElementById(targetImgId).src = reader.result;
-            };
-            if (file) reader.readAsDataURL(file);
-        };
-
-        window.uploadChatImg = (input) => {
-            const file = input.files[0];
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-                if(activeChatId) {
-                    await addDoc(collection(db, "messages"), {
-                        chatId: activeChatId, senderId: myData.uid,
-                        content: reader.result, type: 'image',
-                        timestamp: serverTimestamp(), participants: [myData.uid, activeTarget.uid]
-                    });
-                }
-            };
-            if (file) reader.readAsDataURL(file);
-        };
-
-        // --- AÇÕES DO PERFIL ---
-        window.saveProfile = async () => {
-            const updated = {
-                uid: auth.currentUser.uid,
-                ghostId: myData.ghostId,
-                name: document.getElementById('in-name').value,
-                bio: document.getElementById('in-bio').value,
-                pic: document.getElementById('view-pfp').src,
-                banner: document.getElementById('view-banner').src
-            };
-            await setDoc(doc(db, "users", auth.currentUser.uid), updated);
-            closeModals();
-        };
-
-        // --- SISTEMA DE CHAT ---
+        // Enviar Mensagem
         window.handleSendMsg = async () => {
             const input = document.getElementById('msg-input');
-            const val = input.value.trim();
-            if(val && activeChatId) {
+            const txt = input.value.trim();
+            if(txt && activeChatId) {
                 await addDoc(collection(db, "messages"), {
-                    chatId: activeChatId, senderId: myData.uid,
-                    content: val, type: 'text',
-                    timestamp: serverTimestamp(), participants: [myData.uid, activeTarget.uid]
+                    chatId: activeChatId, senderId: myData.uid, content: txt,
+                    type: "text", timestamp: serverTimestamp(), participants: [myData.uid, activeTarget.uid]
                 });
                 input.value = '';
             }
         };
 
-        // Enviar com Enter
-        document.getElementById('msg-input').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') handleSendMsg();
-        });
+        document.getElementById('msg-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') handleSendMsg(); });
 
+        // Enviar Imagem Base64
+        window.sendImage = (input) => {
+            const file = input.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = async () => {
+                await addDoc(collection(db, "messages"), {
+                    chatId: activeChatId, senderId: myData.uid, content: reader.result,
+                    type: "image", timestamp: serverTimestamp(), participants: [myData.uid, activeTarget.uid]
+                });
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // Abrir Chat e Receber Mensagens
         window.startChat = (target) => {
             activeTarget = target;
             activeChatId = [myData.uid, target.uid].sort().join('_');
             
             document.getElementById('header-ui').style.visibility = 'visible';
             document.getElementById('target-name').innerText = target.name;
-            document.getElementById('target-bio').innerText = target.bio || 'Sem bio';
-            document.getElementById('target-pfp').src = target.pic;
+            document.getElementById('target-bio').innerText = target.bio;
+            document.getElementById('target-pfp').src = target.pic || 'https://via.placeholder.com/40';
             
-            // Carregar Wallpaper salvo localmente para este chat
-            const savedWall = localStorage.getItem(`wall_${activeChatId}`);
-            document.getElementById('chat-bg-area').style.backgroundImage = savedWall ? `url(${savedWall})` : 'none';
+            const wall = localStorage.getItem(`wall_${activeChatId}`);
+            document.getElementById('chat-area').style.backgroundImage = wall ? `url(${wall})` : 'none';
 
             if(unsub) unsub();
             const q = query(collection(db, "messages"), where("chatId", "==", activeChatId), orderBy("timestamp", "asc"));
@@ -272,8 +219,7 @@
                     const isOwn = m.senderId === myData.uid;
                     const wrap = document.createElement('div');
                     wrap.className = `msg-wrapper ${isOwn ? 'own' : 'other'}`;
-                    
-                    let content = m.type === 'image' ? `<img src="${m.content}" class="chat-img">` : m.content;
+                    const content = m.type === 'image' ? `<img src="${m.content}" class="chat-img" onclick="window.open('${m.content}')">` : m.content;
                     wrap.innerHTML = `<div class="msg-bubble">${content}</div>`;
                     container.appendChild(wrap);
                 });
@@ -282,58 +228,75 @@
             closeModals();
         };
 
-        // --- CONTATOS E WALLPAPER ---
+        // Buscar/Salvar Contato
         window.findGhost = async () => {
             const id = document.getElementById('search-id').value;
             const q = query(collection(db, "users"), where("ghostId", "==", id), limit(1));
             const snap = await getDocs(q);
             if(!snap.empty) {
                 const target = snap.docs[0].data();
-                // Salva contato no histórico local (simulando lista de contatos)
-                let contacts = JSON.parse(localStorage.getItem('my_contacts') || '[]');
+                let contacts = JSON.parse(localStorage.getItem('ghost_contacts') || '[]');
                 if(!contacts.includes(target.uid)) contacts.push(target.uid);
-                localStorage.setItem('my_contacts', JSON.stringify(contacts));
-                
+                localStorage.setItem('ghost_contacts', JSON.stringify(contacts));
                 startChat(target);
-                loadContacts();
-            } else {
-                alert("Fantasma não encontrado!");
-            }
+                loadChatList();
+            } else alert("Ghost não encontrado!");
         };
 
-        function loadContacts() {
-            const contacts = JSON.parse(localStorage.getItem('my_contacts') || '[]');
+        function loadChatList() {
+            const contacts = JSON.parse(localStorage.getItem('ghost_contacts') || '[]');
             const listUi = document.getElementById('chat-list-ui');
             listUi.innerHTML = '';
-            
             contacts.forEach(async (uid) => {
-                const uSnap = await getDocs(query(collection(db, "users"), where("uid", "==", uid)));
-                if(!uSnap.empty) {
-                    const u = uSnap.docs[0].data();
+                const snap = await getDoc(doc(db, "users", uid));
+                if(snap.exists()){
+                    const u = snap.data();
                     const item = document.createElement('div');
                     item.className = 'chat-item';
-                    item.innerHTML = `<img src="${u.pic}"> <div><b>${u.name}</b><br><small>${u.bio || ''}</small></div>`;
+                    item.innerHTML = `<img src="${u.pic || 'https://via.placeholder.com/45'}" class="avatar"><div><b>${u.name}</b><br><small>ID: ${u.ghostId}</small></div>`;
                     item.onclick = () => startChat(u);
                     listUi.appendChild(item);
                 }
             });
         }
 
-        window.applyWallpaper = (input) => {
-            const file = input.files[0];
+        // Funções de Perfil
+        window.previewImg = (input, id) => {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                localStorage.setItem(`wall_${activeChatId}`, reader.result);
-                document.getElementById('chat-bg-area').style.backgroundImage = `url(${reader.result})`;
-            };
-            if (file) reader.readAsDataURL(file);
+            reader.onload = () => { document.getElementById(id).src = reader.result; };
+            reader.readAsDataURL(input.files[0]);
         };
 
-        // --- INTERFACE ---
-        window.openModal = (id) => document.getElementById(id).classList.add('active');
+        window.saveProfile = async () => {
+            myData.name = document.getElementById('in-name').value;
+            myData.bio = document.getElementById('in-bio').value;
+            myData.pic = document.getElementById('view-pfp').src;
+            myData.banner = document.getElementById('view-banner').src;
+            await setDoc(doc(db, "users", myData.uid), myData);
+            document.getElementById('my-pfp').src = myData.pic;
+            closeModals();
+        };
+
+        window.applyWallpaper = (input) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                localStorage.setItem(`wall_${activeChatId}`, reader.result);
+                document.getElementById('chat-area').style.backgroundImage = `url(${reader.result})`;
+            };
+            reader.readAsDataURL(input.files[0]);
+        };
+
+        window.openModal = (id) => {
+            if(id === 'modal-profile'){
+                document.getElementById('view-pfp').src = myData.pic || '';
+                document.getElementById('view-banner').src = myData.banner || '';
+                document.getElementById('in-name').value = myData.name;
+                document.getElementById('in-bio').value = myData.bio;
+            }
+            document.getElementById(id).classList.add('active');
+        };
         window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
         window.handleLogin = () => signInAnonymously(auth);
-
     </script>
 </body>
 </html>
